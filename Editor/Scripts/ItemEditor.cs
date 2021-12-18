@@ -11,7 +11,6 @@ namespace ExpressoBits.Inventories.Editor
 
         private bool changeID;
         private ushort newId;
-        private Items items;
 
         public override void OnInspectorGUI()
         {

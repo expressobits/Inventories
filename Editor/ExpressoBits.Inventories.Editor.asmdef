@@ -2,7 +2,7 @@
     "name": "ExpressoBits.Inventories.Editor",
     "rootNamespace": "ExpressoBits.Inventories.Editor",
     "references": [
-        "GUID:a47047864732cd0429265d282161bdf0"
+        "GUID:453d7252c071c644ea4b841c693572ac"
     ],
     "includePlatforms": [
         "Editor"

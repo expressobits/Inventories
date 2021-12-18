@@ -3,7 +3,8 @@
     "rootNamespace": "ExpressoBits.Inventories.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "ExpressoBits.Inventories"
     ],
     "includePlatforms": [
         "Editor"

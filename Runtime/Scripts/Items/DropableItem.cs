@@ -1,11 +1,12 @@
 using UnityEngine;
 
-namespace ExpressoBits.Inventory
+namespace ExpressoBits.Inventories
 {
-    [CreateAssetMenu(fileName = "DropableItem", menuName = "Item")]
-    public class DropableItem : ScriptableObject
+    [CreateAssetMenu(fileName = "Dropable Item", menuName = "Expresso Bits/Inventories/Dropable Item")]
+    public class DropableItem : Item
     {
-
+        // public ItemObject ItemObjectPrefab => itemObjectPrefab;
+        // [SerializeField] private ItemObject itemObjectPrefab;
     }
 }
 
