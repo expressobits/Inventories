@@ -34,10 +34,10 @@ namespace ExpressoBits.Inventories
 
         public static implicit operator Item(ushort id)
         {
-            Items[] items = Resources.FindObjectsOfTypeAll<Items>();
-            if(items.Length > 0)
+            Item[] items = Resources.FindObjectsOfTypeAll<Item>();
+            foreach (var item in items)
             {
-                return items[0].GetItem(id);
+                if(item.ID == id) return item;
             }
             Debug.Log("There are no scriptable items in the project!");
             return null;
