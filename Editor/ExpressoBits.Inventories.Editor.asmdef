@@ -1,0 +1,18 @@
+{
+    "name": "ExpressoBits.Inventories.Editor",
+    "rootNamespace": "ExpressoBits.Inventories.Editor",
+    "references": [
+        "GUID:a47047864732cd0429265d282161bdf0"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
