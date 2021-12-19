@@ -6,7 +6,8 @@ namespace ExpressoBits.Inventories
 {
     public class Container : MonoBehaviour, IContainer<Item>
     {
-        public List<Slot> Slots => slots;
+        //public List<Slot> Slots => slots;
+        public int Count => slots.Count;
         public float Weight
         {
             get
@@ -18,21 +19,25 @@ namespace ExpressoBits.Inventories
         }
 
         [SerializeField] private List<Slot> slots = new List<Slot>();
-        [SerializeField] private bool haveSlotAmountLimit;
-        [SerializeField] private int slotAmountLimit = 8;
+        [SerializeField] private bool limitedSlots;
+        [SerializeField] private int limitedAmountOfSlots = 8;
 
         #region Actions
-        public Action<Item, ushort> OnItemAdd;
-        public Action<Item, ushort> OnItemRemove;
-        #endregion
-
+        public Action<Item, ushort> OnAdd;
+        public Action<Item, ushort> OnRemove;
         /// <summary>
         /// Basic client received update event
         /// </summary>
         public Action OnChanged;
+        #endregion
+
+        private void Awake()
+        {
+            slots = new List<Slot>();
+        }
 
         #region IContainer Functions
-        public ushort Add(Item item, ushort amount)
+        public ushort Add(Item item, ushort amount = 1)
         {
             for (int i = 0; i < slots.Count; i++)
             {
@@ -43,21 +48,23 @@ namespace ExpressoBits.Inventories
                     slots[i] = slot;
                     if (amount == 0)
                     {
-                        OnItemAdd?.Invoke(item, amount);
+                        OnAdd?.Invoke(item, amount);
+                        OnChanged?.Invoke();
                         return 0;
                     }
                 }
             }
-            if(!haveSlotAmountLimit || Slots.Count < slotAmountLimit)
+            if (!limitedSlots || slots.Count < limitedAmountOfSlots)
             {
-                slots.Add(new Slot(item.ID,amount) { });
+                slots.Add(new Slot(item.ID, amount) { });
                 amount = 0;
             }
-            OnItemAdd?.Invoke(item, amount);
+            OnAdd?.Invoke(item, amount);
+            OnChanged?.Invoke();
             return amount;
         }
 
-        public ushort RemoveInIndex(int index, ushort valueToRemove)
+        public ushort RemoveInIndex(int index, ushort valueToRemove = 1)
         {
             ushort valueNoRemoved = valueToRemove;
             if (slots.Count > index)
@@ -73,12 +80,13 @@ namespace ExpressoBits.Inventories
                         slots.RemoveAt(index);
                     }
                 }
-                OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+                OnRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+                OnChanged?.Invoke();
             }
             return valueNoRemoved;
         }
 
-        public ushort Remove(Item item, ushort valueToRemove)
+        public ushort Remove(Item item, ushort valueToRemove = 1)
         {
             ushort valueNoRemoved = valueToRemove;
             for (int i = 0; i < slots.Count; i++)
@@ -95,7 +103,8 @@ namespace ExpressoBits.Inventories
                     if (valueNoRemoved == 0) return 0;
                 }
             }
-            OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+            OnRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+            OnChanged?.Invoke();
             return valueNoRemoved;
         }
 
@@ -119,11 +128,26 @@ namespace ExpressoBits.Inventories
                 Slot slot = slots[i];
                 if (slot.ItemID == item.ID)
                 {
-                    amount = (ushort)Mathf.Max(amount - slot.Amount,0);
+                    amount = (ushort)Mathf.Max(amount - slot.Amount, 0);
                 }
                 if (amount <= 0) return true;
             }
             return false;
+        }
+
+        public Slot this[int index]
+        {
+            get { return slots[index]; }
+            set
+            {
+                slots[index] = value;
+                OnChanged?.Invoke();
+            }
+        }
+
+        public int IndexOf(Slot slot)
+        {
+            return slots.IndexOf(slot);
         }
 
         public void Clear()

@@ -12,7 +12,7 @@ namespace ExpressoBits.Inventories
         /// All container slots
         /// </summary>
         /// <value>NetworkList with Slots</value>
-        public List<Slot> Slots { get; }
+        //public List<Slot> Slots { get; }
 
         /// <summary>
         /// Sum of container weight

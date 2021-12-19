@@ -17,7 +17,7 @@ namespace ExpressoBits.Inventories
 
         [SerializeField] private ushort itemId;
         [SerializeField] private ushort amount;
-        private int id;
+        private readonly int id;
 
         public Slot(ushort itemId, ushort amount = 0)
         {
