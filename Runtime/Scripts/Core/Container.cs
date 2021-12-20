@@ -1,12 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace ExpressoBits.Inventories
 {
-    public class Container : MonoBehaviour, IContainer<Item>
+    [AddComponentMenu("Inventories/" + nameof(Container))]
+    public class Container : MonoBehaviour, IContainer<Item>, IEnumerable<Slot>
     {
         //public List<Slot> Slots => slots;
+        public Database Database => database;
         public int Count => slots.Count;
         public float Weight
         {
@@ -18,13 +21,19 @@ namespace ExpressoBits.Inventories
             }
         }
 
+        [SerializeField] private Database database;
         [SerializeField] private List<Slot> slots = new List<Slot>();
         [SerializeField] private bool limitedSlots;
         [SerializeField] private int limitedAmountOfSlots = 8;
 
         #region Actions
-        public Action<Item, ushort> OnAdd;
-        public Action<Item, ushort> OnRemove;
+        public Action<Item, ushort> OnItemAdd;
+        public Action<Item, ushort> OnItemRemove;
+
+        public Action<Slot> OnAdd;
+        public Action<Slot> OnRemove;
+        public Action<int> OnRemoveAt;
+        public Action<int> OnUpdate;
         /// <summary>
         /// Basic client received update event
         /// </summary>
@@ -45,22 +54,20 @@ namespace ExpressoBits.Inventories
                 if (slot.ItemID == item.ID)
                 {
                     amount = slot.Add(amount);
-                    slots[i] = slot;
+                    this[i] = slot;
                     if (amount == 0)
                     {
-                        OnAdd?.Invoke(item, amount);
-                        OnChanged?.Invoke();
+                        OnItemAdd?.Invoke(item, amount);
                         return 0;
                     }
                 }
             }
             if (!limitedSlots || slots.Count < limitedAmountOfSlots)
             {
-                slots.Add(new Slot(item.ID, amount) { });
+                Add(new Slot(item, amount) { });
                 amount = 0;
             }
-            OnAdd?.Invoke(item, amount);
-            OnChanged?.Invoke();
+            OnItemAdd?.Invoke(item, amount);
             return amount;
         }
 
@@ -74,13 +81,13 @@ namespace ExpressoBits.Inventories
                 if (item != null)
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
-                    slots[index] = slot;
+                    this[index] = slot;
                     if (slot.IsEmpty)
                     {
-                        slots.RemoveAt(index);
+                        RemoveAt(index);
                     }
                 }
-                OnRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+                OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
                 OnChanged?.Invoke();
             }
             return valueNoRemoved;
@@ -95,15 +102,15 @@ namespace ExpressoBits.Inventories
                 if (slot.Item == item.ID)
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
-                    slots[i] = slot;
+                    this[i] = slot;
                     if (slot.IsEmpty)
                     {
-                        slots.RemoveAt(i);
+                        RemoveAt(i);
                     }
                     if (valueNoRemoved == 0) return 0;
                 }
             }
-            OnRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+            OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
             OnChanged?.Invoke();
             return valueNoRemoved;
         }
@@ -141,8 +148,26 @@ namespace ExpressoBits.Inventories
             set
             {
                 slots[index] = value;
-                OnChanged?.Invoke();
+                OnUpdate?.Invoke(index);
             }
+        }
+
+        public void Add(Slot slot)
+        {
+            OnAdd?.Invoke(slot);
+            slots.Add(slot);
+        }
+
+        public void RemoveAt(int index)
+        {
+            OnRemoveAt?.Invoke(index);
+            slots.RemoveAt(index);
+        }
+
+        public void Remove(Slot slot)
+        {
+            OnRemove?.Invoke(slot);
+            slots.Remove(slot);
         }
 
         public int IndexOf(Slot slot)
@@ -153,6 +178,27 @@ namespace ExpressoBits.Inventories
         public void Clear()
         {
             slots.Clear();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return slots.GetEnumerator();
+        }
+
+        IEnumerator<Slot> IEnumerable<Slot>.GetEnumerator()
+        {
+            return slots.GetEnumerator();
+        }
+        #endregion
+
+        #region Utils
+        public Slot ToSlot(uint s)
+        {
+            (ushort, ushort) split = Slot.SplitInt(s);
+            ushort itemId = split.Item1;
+            ushort amount = split.Item2;
+            Item item = Database.GetItem(itemId);
+            return new Slot(item, amount) { };
         }
         #endregion
 

@@ -11,7 +11,7 @@ namespace ExpressoBits.Inventories
         public Sprite Icon => icon;
         public Category Category => category;
         public ushort MaxStack => maxStack;
-        //public ItemObject ItemObjectPrefab => itemObjectPrefab;
+        public ItemObject ItemObjectPrefab => itemObjectPrefab;
         public float Weight => weight;
 
         [SerializeField] private ushort id = 0;
@@ -19,7 +19,7 @@ namespace ExpressoBits.Inventories
         [SerializeField] private Sprite icon;
         [SerializeField, Min(0.01f)] private float weight = 0.1f;
         [SerializeField, Min(1)] private ushort maxStack = 64;
-        //[SerializeField] private ItemObject itemObjectPrefab;
+        [SerializeField] private ItemObject itemObjectPrefab;
         [SerializeField] private Category category;
 
         internal void Setup(ushort id)
@@ -30,17 +30,6 @@ namespace ExpressoBits.Inventories
         public static implicit operator ushort(Item item)
         {
             return item.ID;
-        }
-
-        public static implicit operator Item(ushort id)
-        {
-            Item[] items = Resources.FindObjectsOfTypeAll<Item>();
-            foreach (var item in items)
-            {
-                if(item.ID == id) return item;
-            }
-            Debug.Log("There are no scriptable items in the project!");
-            return null;
         }
 
     }
