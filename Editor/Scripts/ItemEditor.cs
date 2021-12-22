@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,6 +18,10 @@ namespace ExpressoBits.Inventories.Editor
             Item item = (Item)target;
             ChangeID(item);
             Show(item, serializedObject);
+            if (GUILayout.Button("Delete"))
+            {
+                DeleteFromDatabase(item);
+            }
         }
 
         public static void Show(Item item, SerializedObject serializedObject)
@@ -44,11 +49,11 @@ namespace ExpressoBits.Inventories.Editor
 
         private bool HasItemId(ushort newId, Item thisItem)
         {
-            Item[] items = Resources.FindObjectsOfTypeAll<Item>();
+            List<Item> items = thisItem.Database.Items;
             foreach (var item in items)
             {
-                if(item == thisItem) continue;
-                if(item.ID == newId) return true;
+                if (item == thisItem) continue;
+                if (item.ID == newId) return true;
             }
             return false;
         }
@@ -58,16 +63,17 @@ namespace ExpressoBits.Inventories.Editor
             EditorGUILayout.BeginHorizontal();
             if (changeID)
             {
-                bool validID = !HasItemId(newId,item);
+                if(newId == 0) newId = 1;
+                bool validID = !HasItemId(newId, item);
                 Color lastColor = GUI.color;
-                if(!validID) GUI.color = Color.red;
+                if (!validID) GUI.color = Color.red;
                 newId = (ushort)EditorGUILayout.IntField("ID", newId);
                 GUI.color = lastColor;
                 EditorGUI.BeginDisabledGroup(!validID);
                 if (GUILayout.Button("OK"))
                 {
                     changeID = false;
-                    if (!HasItemId(newId,item))
+                    if (!HasItemId(newId, item))
                     {
                         serializedObject.FindProperty("id").intValue = newId;
                     }
@@ -85,6 +91,20 @@ namespace ExpressoBits.Inventories.Editor
                 }
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        public void DeleteFromDatabase(Item item)
+        {
+            if (EditorUtility.DisplayDialog("Delete select item?","Delete item name " + item.name+ "\nYou cannot undo this action", "Yes", "No"))
+            {
+                Database database = item.Database;
+                if (database) database.Items.Remove(item);
+                AssetDatabase.RemoveObjectFromAsset(item);
+                //string path = AssetDatabase.GetAssetPath((ScriptableObject)item);
+                //AssetDatabase.DeleteAsset(path);
+                AssetDatabase.SaveAssets();
+            }
+
         }
 
     }

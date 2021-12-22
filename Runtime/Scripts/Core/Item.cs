@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace ExpressoBits.Inventories
 {
-    [CreateAssetMenu(fileName = "Item", menuName = "Expresso Bits/Inventories/Item")]
     public class Item : ScriptableObject, IItem
     {
+        public Database Database => database;
         public ushort ID => id;
         public string Name => name;
         public string Description => description;
@@ -14,6 +14,7 @@ namespace ExpressoBits.Inventories
         public ItemObject ItemObjectPrefab => itemObjectPrefab;
         public float Weight => weight;
 
+        [SerializeField] private Database database;
         [SerializeField] private ushort id = 0;
         [SerializeField, TextArea] private string description;
         [SerializeField] private Sprite icon;
@@ -22,8 +23,9 @@ namespace ExpressoBits.Inventories
         [SerializeField] private ItemObject itemObjectPrefab;
         [SerializeField] private Category category;
 
-        internal void Setup(ushort id)
+        internal void Setup(Database database, ushort id)
         {
+            this.database = database;
             this.id = id;
         }
 

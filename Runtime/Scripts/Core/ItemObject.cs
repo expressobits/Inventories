@@ -4,7 +4,7 @@ namespace ExpressoBits.Inventories
 {
     public class ItemObject : MonoBehaviour
     {
-        //public Item
+        //public Item item;
     }
 }
 

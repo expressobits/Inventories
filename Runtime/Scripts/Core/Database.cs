@@ -9,6 +9,7 @@ namespace ExpressoBits.Inventories
     [CreateAssetMenu(fileName = "Database", menuName = "Expresso Bits/Inventories/Database")]
     public class Database : ScriptableObject
     {
+        public List<Item> Items => items;
         [SerializeField] private List<Item> items;
 
         /// <summary>
@@ -31,10 +32,10 @@ namespace ExpressoBits.Inventories
         /// </summary>
         /// <param name="item"></param>
         /// <param name="id"></param>
-        internal void Add(Item item,ushort id)
+        public void Add(Item item, ushort id)
         {
-            item.Setup(id);
-            items.Insert(id,item);
+            item.Setup(this, id);
+            items.Insert(Mathf.Min(id,items.Count),item);
         }
 
         /// <summary>
