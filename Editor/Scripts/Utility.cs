@@ -33,7 +33,8 @@ namespace ExpressoBits.Inventories.Editor
 
         public static bool HasCustomPropertyDrawer(Type type)
         {
-            if (m_CustomPropertyDrawerLookup.ContainsKey(type)) {
+            if (m_CustomPropertyDrawerLookup.ContainsKey(type))
+            {
                 return m_CustomPropertyDrawerLookup[type];
             }
 
@@ -75,18 +76,18 @@ namespace ExpressoBits.Inventories.Editor
         }
 
         public static T[] GetCustomAttributes<T>(this MemberInfo memberInfo)
-		{
-			object[] objArray = GetCustomAttributes(memberInfo, true);
-			List<T> list = new List<T>();
-			for (int i = 0; i < (int)objArray.Length; i++)
-			{
-				if (objArray[i].GetType() == typeof(T) || objArray[i].GetType().IsSubclassOf(typeof(T)))
-				{
-					list.Add((T)objArray[i]);
-				}
-			}
-			return list.ToArray();
-		}
+        {
+            object[] objArray = GetCustomAttributes(memberInfo, true);
+            List<T> list = new List<T>();
+            for (int i = 0; i < (int)objArray.Length; i++)
+            {
+                if (objArray[i].GetType() == typeof(T) || objArray[i].GetType().IsSubclassOf(typeof(T)))
+                {
+                    list.Add((T)objArray[i]);
+                }
+            }
+            return list.ToArray();
+        }
 
         public static T GetCustomAttribute<T>(this MemberInfo memberInfo)
         {
@@ -139,13 +140,62 @@ namespace ExpressoBits.Inventories.Editor
         }
 
         public static IEnumerable<Type> BaseTypesAndSelf(this Type type)
-		{
-			while (type != null)
-			{
-				yield return type;
-				type = type.BaseType;
-			}
-		}
+        {
+            while (type != null)
+            {
+                yield return type;
+                type = type.BaseType;
+            }
+        }
+
+        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
+        {
+            var interfaceTypes = givenType.GetInterfaces();
+
+            foreach (var it in interfaceTypes)
+            {
+                if (it.IsGenericType && it.GetGenericTypeDefinition() == genericType)
+                    return true;
+            }
+
+            if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
+                return true;
+
+            Type baseType = givenType.BaseType;
+            if (baseType == null) return false;
+
+            return IsAssignableToGenericType(baseType, genericType);
+        }
+
+        public static Type[] GetValidTypes(Type genericType)
+        {
+            List<Type> types = new List<Type>();
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assemble in assemblies)
+            {
+                Type[] assembleTypes = assemble.GetTypes();
+                foreach (var type in assembleTypes)
+                {
+                    if ((IsAssignableToGenericType(type, genericType) || genericType.IsAssignableFrom(type)) && !type.IsAbstract)
+                    {
+                        types.Add(type);
+                    }
+                }
+
+            }
+            return types.ToArray();
+        }
+
+        public static bool IsValidType(Type typeToCheck, Type genericType)
+        {
+            Type[] types = GetValidTypes(genericType);
+            foreach (var type in types)
+            {
+                if (typeToCheck == type) return true;
+            }
+            return false;
+        }
 
         public static bool HasAttribute<T>(this MemberInfo memberInfo)
         {
@@ -163,6 +213,27 @@ namespace ExpressoBits.Inventories.Editor
                 }
             }
             return false;
+        }
+
+        private static Dictionary<Type,Texture2D> cacheIcons = new Dictionary<Type, Texture2D>();
+        internal static Texture2D GetIcon(Type type)
+        {
+            if(cacheIcons.TryGetValue(type, out Texture2D texture2D))
+            {
+                return texture2D;
+            }
+            foreach (var script in MonoImporter.GetAllRuntimeMonoScripts())
+            {
+                if (script.GetClass() == type)
+                {
+
+                    //script is the MonoScript you're looking for.
+                    Texture2D tex = AssetPreview.GetMiniThumbnail(script);
+                    cacheIcons.Add(type,tex);
+                    return tex;
+                }
+            }
+            return null;
         }
     }
 }

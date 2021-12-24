@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -6,44 +7,49 @@ namespace ExpressoBits.Inventories.Editor
     [CustomEditor(typeof(Database))]
     public class DatabaseEditor : UnityEditor.Editor
     {
+
+        private Database database;
+
         public override void OnInspectorGUI()
         {
-            //base.OnInspectorGUI();
-            NewItemButton();
+            database = (Database)target;
+            // TODO show all items with search bar?
+            // base.OnInspectorGUI();
+            DoAddButton();
         }
 
-        public void MakeNewItem(Database database, ushort newId, string newName)
+        private void CreateScript(string scriptName)
         {
-            Item newItem = CreateInstance<Item>();
-            newItem.name = newName;
-            database.Add(newItem, newId);
-            AssetDatabase.AddObjectToAsset(newItem, database);
-            AssetDatabase.SaveAssets();
+
         }
 
-        private ushort newId;
-        private string newName = string.Empty;
-
-        private void NewItemButton()
+        private void DoAddButton()
         {
-            var origFontStyle = EditorStyles.label.fontStyle;
-            var database = (Database)target;
-            EditorGUILayout.BeginVertical("box");
-            EditorStyles.label.fontStyle = FontStyle.Bold;
-            EditorGUILayout.LabelField("New Item");
-            EditorStyles.label.fontStyle = origFontStyle;
-            ushort id = (byte)EditorGUILayout.IntField("Item ID", newId);
-            if(id == 0) id = 1;
-            id = database.HasItem(id) ? database.GetNewItemId() : id;
-            newId = id;
-            newName = EditorGUILayout.TextField("Name", newName);
-            EditorGUI.BeginDisabledGroup(newName.Length == 0);
-            if (GUILayout.Button("Add New Item"))
+            GUIStyle buttonStyle = new GUIStyle("AC Button");
+            string nicifyName = ObjectNames.NicifyVariableName(typeof(Item).Name);
+            GUIContent buttonContent = new GUIContent("Add " + nicifyName);
+            Rect buttonRect = GUILayoutUtility.GetRect(buttonContent, buttonStyle, GUILayout.ExpandWidth(true));
+            buttonRect.width = buttonStyle.fixedWidth;
+            buttonRect.x = EditorGUIUtility.currentViewWidth * 0.5f - buttonRect.width * 0.5f;
+
+            if (GUI.Button(buttonRect, buttonContent, buttonStyle))
             {
-                MakeNewItem(database, newId, newName);
+                AddItemWindow.ShowWindow(buttonRect, this, CreateScript);
             }
-            EditorGUI.EndDisabledGroup();
-            EditorGUILayout.EndVertical();
+        }
+
+        internal void Add(Type type)
+        {
+            ScriptableObject newInstance = CreateInstance(type);
+            newInstance.name = "new item";
+            serializedObject.Update();
+            if (newInstance is Item newItem)
+            {
+                database.Add(newItem, database.GetNewItemId());
+                AssetDatabase.AddObjectToAsset(newItem, database);
+                AssetDatabase.SaveAssets();
+            }
+
         }
     }
 }

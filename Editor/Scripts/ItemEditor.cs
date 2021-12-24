@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace ExpressoBits.Inventories.Editor
 {
-    [CanEditMultipleObjects]
     [CustomEditor(typeof(Item))]
     public class ItemEditor : UnityEditor.Editor
     {
@@ -30,6 +29,13 @@ namespace ExpressoBits.Inventories.Editor
 
         public override void OnInspectorGUI()
         {
+            ShowBaseItemInformation();
+            ShowComponents();
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        public void ShowBaseItemInformation()
+        {
             Item item = (Item)target;
             ChangeID(item);
             Show(item, serializedObject);
@@ -38,8 +44,6 @@ namespace ExpressoBits.Inventories.Editor
                 DeleteFromDatabase(item);
             }
             EditorGUILayout.Space(32);
-            ShowComponents(componentsProperty);
-            DoAddButton();
         }
 
         public static void Show(Item item, SerializedObject serializedObject)
@@ -49,14 +53,14 @@ namespace ExpressoBits.Inventories.Editor
             SerializedProperty maxStackProperty = serializedObject.FindProperty("maxStack");
             SerializedProperty iconProperty = serializedObject.FindProperty("icon");
             SerializedProperty descriptionProperty = serializedObject.FindProperty("description");
+            SerializedProperty weightProperty = serializedObject.FindProperty("weight");
             SerializedProperty categoryProperty = serializedObject.FindProperty("category");
 
             EditorGUILayout.PropertyField(maxStackProperty);
+            EditorGUILayout.PropertyField(weightProperty);
             EditorGUILayout.PropertyField(iconProperty);
             EditorGUILayout.PropertyField(descriptionProperty);
             EditorGUILayout.PropertyField(categoryProperty);
-
-            serializedObject.ApplyModifiedProperties();
 
         }
 
@@ -115,47 +119,67 @@ namespace ExpressoBits.Inventories.Editor
                 //string path = AssetDatabase.GetAssetPath((ScriptableObject)item);
                 //AssetDatabase.DeleteAsset(path);
                 AssetDatabase.SaveAssets();
+                Selection.activeGameObject = null;
             }
         }
 
         #region Components
-        public void ShowComponents(SerializedProperty list)
+        public void ShowComponents()
         {
+            EditorGUILayout.Space(16);
+            EditorGUILayout.HelpBox("Item Components is in experimental state as it is still necessary to add a \"MoveFrom\" attribute to the script if it is renamed. Renaming a script without this attribute will make it impossible to view the entire list of components that contain at least one of that script.",MessageType.Info);
+            if(GUILayout.Button("See more here"))
+            {
+                Application.OpenURL("https://forum.unity.com/threads/serializereference-data-loss-when-class-name-is-changed.736874/");
+            }
+            SerializedProperty list = componentsProperty;
+            if(components.Count > 0 && components[0] == null)
+            {
+                EditorGUILayout.HelpBox("There are invalid scripts on this list!",MessageType.Warning);
+            }
             for (int i = 0; i < list.arraySize; i++)
             {
                 SerializedProperty property = list.GetArrayElementAtIndex(i);
                 EditorGUILayout.BeginVertical();
-                DrawComponent(i, ref property);
+                ItemComponent component = components[i];
+                DrawComponent(i, component, ref property);
                 EditorGUILayout.EndVertical();
+                
             }
             EditorUtils.DrawSplitter(false);
+            DoAddButton();
         }
 
-        private void DrawComponent(int index, ref SerializedProperty componentProperty)
+        private void DrawComponent(int index, ItemComponent component, ref SerializedProperty componentProperty)
         {
-            ItemComponent component = components[index];
-
             EditorUtils.DrawSplitter(false);
-            string name = ObjectNames.NicifyVariableName(component.GetType().Name);
-            name = name.Replace("Component", "");
-
-            Texture2D icon = (Texture2D)EditorGUIUtility.ObjectContent(null, component.GetType()).image;
-            if (icon == null) icon = AssetPreview.GetMiniTypeThumbnail(component.GetType());
-            if (icon == null) icon = EditorGUIUtility.FindTexture("cs Script Icon");
-
-            bool displayContent = EditorUtils.DrawHeaderToggle(name, componentProperty, icon,  pos => OnContextClick(pos, index));
-            if (displayContent)
+            if(component == null)
             {
-                EditorUtils.DrawSplitter(false);
-                foreach (var child in componentProperty.EnumerateChildProperties())
-                {
-                    EditorGUILayout.PropertyField(
-                        child,
-                        includeChildren: true
-                    );
-                }
-                EditorGUILayout.Space(16);
+                EditorUtils.DrawHeaderNull("Invalid script "+ componentProperty.managedReferenceFullTypename,pos => OnContextClick(pos, index), null, null);
             }
+            else
+            {
+                string name = ObjectNames.NicifyVariableName(component.GetType().Name);
+                name = name.Replace(ObjectNames.NicifyVariableName(typeof(ItemComponent).Name), "");
+                Texture2D icon = Utility.GetIcon(component.GetType());
+                if (icon == null) icon = (Texture2D)EditorGUIUtility.ObjectContent(null, component.GetType()).image;
+                if (icon == null) icon = AssetPreview.GetMiniTypeThumbnail(component.GetType());
+                if (icon == null) icon = EditorGUIUtility.FindTexture("cs Script Icon");
+                
+                bool displayContent = EditorUtils.DrawHeaderToggle(name, componentProperty, icon, pos => OnContextClick(pos, index));
+                if (displayContent)
+                {
+                    foreach (var child in componentProperty.EnumerateChildProperties())
+                    {
+                        EditorGUILayout.PropertyField(
+                            child,
+                            includeChildren: true
+                        );
+                    }
+                }
+            }
+
+            
         }
 
         private void OnContextClick(Vector2 position, int id)

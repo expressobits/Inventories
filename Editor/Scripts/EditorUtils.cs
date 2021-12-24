@@ -110,8 +110,8 @@ namespace ExpressoBits.Inventories.Editor
             static CoreStyles()
             {
                 //paneOptionsIconDark = (Texture2D) EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-                paneOptionsIconDark = (Texture2D) EditorGUIUtility.TrIconContent("_Menu").image;
-                paneOptionsIconLight = (Texture2D) EditorGUIUtility.TrIconContent("d__Menu").image;
+                paneOptionsIconDark = (Texture2D)EditorGUIUtility.TrIconContent("_Menu").image;
+                paneOptionsIconLight = (Texture2D)EditorGUIUtility.TrIconContent("d__Menu").image;
                 //paneOptionsIconLight = (Texture2D) EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
             }
         }
@@ -210,9 +210,9 @@ namespace ExpressoBits.Inventories.Editor
             GUI.Label(iconRect, icon);
 
             // Foldout
-            group.serializedObject.Update();
+            // group.serializedObject.Update();
             group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
-            group.serializedObject.ApplyModifiedProperties();
+            // group.serializedObject.ApplyModifiedProperties();
 
             // More options 2/2
             if (hasMoreOptions != null)
@@ -266,6 +266,92 @@ namespace ExpressoBits.Inventories.Editor
             }
 
             return group.isExpanded;
+        }
+
+         /// <summary>Draw a header toggle like in Volumes</summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="group"> The group of the header </param>
+        /// <param name="contextAction">The context action</param>
+        /// <param name="hasMoreOptions">Delegate saying if we have MoreOptions</param>
+        /// <param name="toggleMoreOptions">Callback called when the MoreOptions is toggled</param>
+        /// <param name="documentationURL">Documentation URL</param>
+        /// <returns>return the state of the foldout header</returns>
+        public static void DrawHeaderNull(string title, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions)
+        {
+            var backgroundRect = GUILayoutUtility.GetRect(1f, 20f);
+
+            var labelRect = backgroundRect;
+            labelRect.xMin += 16f;
+            labelRect.xMax -= 20f + 16 + 5;
+
+            var foldoutRect = backgroundRect;
+            foldoutRect.x = 4f;
+            foldoutRect.y += 3f;
+            foldoutRect.width = 13f;
+            foldoutRect.height = 13f;
+
+            var iconRect = backgroundRect;
+            iconRect.y += 1f;
+            iconRect.width = 18f;
+            iconRect.height = 18f;
+
+            var toggleRect = backgroundRect;
+            toggleRect.x += 16f;
+            toggleRect.y += 4f;
+            toggleRect.width = 13f;
+            toggleRect.height = 13f;
+
+            // More options 1/2
+            var moreOptionsRect = new Rect();
+            if (hasMoreOptions != null)
+            {
+                moreOptionsRect = backgroundRect;
+
+                moreOptionsRect.x += moreOptionsRect.width - 16 - 1 - 16 - 5;
+
+                moreOptionsRect.height = 15;
+                moreOptionsRect.width = 16;
+            }
+
+            // Background rect should be full-width
+            backgroundRect.xMin = 0f;
+            backgroundRect.width += 4f;
+
+            // Background
+            float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;
+            EditorGUI.DrawRect(backgroundRect, new Color(backgroundTint, backgroundTint, backgroundTint, 0.2f));
+
+            // Title
+            EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
+
+            // More options 2/2
+            if (hasMoreOptions != null)
+            {
+                bool moreOptions = hasMoreOptions();
+                bool newMoreOptions = Styles.DrawMoreOptions(moreOptionsRect, moreOptions);
+                if (moreOptions ^ newMoreOptions)
+                    toggleMoreOptions?.Invoke();
+            }
+
+            // Context menu
+            var menuIcon = CoreStyles.PaneOptionsIcon;
+            var menuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y, 18f, 18f);
+
+            if (contextAction != null)
+                GUI.DrawTexture(menuRect, menuIcon);
+
+
+            // Handle events
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (contextAction != null && menuRect.Contains(e.mousePosition))
+                {
+                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
+                    e.Use();
+                }
+            }
         }
 
         /// <summary>Draw a splitter separator</summary>

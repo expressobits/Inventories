@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ExpressoBits.Inventories.Editor
 {
-    public class AddObjectWindow : EditorWindow
+    public class AddItemWindow : EditorWindow
     {
 
         private static Styles m_Styles;
@@ -26,22 +26,24 @@ namespace ExpressoBits.Inventories.Editor
         private Element m_SelectedElement;
         private string m_NewScriptName;
 
-        public delegate void AddCallbackDelegate(Type type);
-        public AddCallbackDelegate onAddCallback;
+        // public delegate void AddCallbackDelegate<T>() where T : Item;
+        // public AddCallbackDelegate<T> onAddCallback;
         public delegate void CreateCallbackDelegate(string scriptName);
         public CreateCallbackDelegate onCreateCallback;
 
-        public static void ShowWindow<T>(Rect buttonRect, AddCallbackDelegate addCallback, CreateCallbackDelegate createCallback)
+        public DatabaseEditor databaseEditor;
+
+        public static void ShowWindow(Rect buttonRect, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
         {
-            ShowWindow(buttonRect, typeof(T), addCallback, createCallback);
+            ShowWindow(buttonRect, typeof(Item), databaseEditor, createCallback);
         }
 
-        public static void ShowWindow(Rect buttonRect, Type type, AddCallbackDelegate addCallback, CreateCallbackDelegate createCallback)
+        public static void ShowWindow(Rect buttonRect, Type type, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
         {
-            AddObjectWindow window = CreateInstance<AddObjectWindow>();
+            AddItemWindow window = CreateInstance<AddItemWindow>();
             buttonRect = GUIToScreenRect(buttonRect);
             window.m_Type = type;
-            window.onAddCallback = addCallback;
+            window.databaseEditor = databaseEditor;
             window.onCreateCallback = createCallback;
             window.ShowAsDropDown(buttonRect, new Vector2(buttonRect.width, 280f));
         }
@@ -134,9 +136,9 @@ namespace ExpressoBits.Inventories.Editor
                 if (element.type != null)
                 {
                     icon = Utility.GetIcon(element.type);
-                    if(icon == null) icon = (Texture2D)EditorGUIUtility.ObjectContent(null, element.type).image;
-                    if(icon == null) icon = AssetPreview.GetMiniTypeThumbnail(element.type);
-                    if(icon == null) icon = EditorGUIUtility.FindTexture("cs Script Icon");
+                    if (icon == null) icon = (Texture2D)EditorGUIUtility.ObjectContent(null, element.type).image;
+                    if (icon == null) icon = AssetPreview.GetMiniTypeThumbnail(element.type);
+                    if (icon == null) icon = EditorGUIUtility.FindTexture("cs Script Icon");
                 }
                 m_Styles.elementButton.padding.left = icon != null ? 22 : padding;
 
@@ -146,7 +148,8 @@ namespace ExpressoBits.Inventories.Editor
 
                     if (element.Children.Count == 0)
                     {
-                        onAddCallback?.Invoke(element.type);
+                        Type type = element.type;
+                        databaseEditor.Add(type);
                         Close();
                     }
                     else
@@ -181,9 +184,9 @@ namespace ExpressoBits.Inventories.Editor
             return true;
         }
 
-        
 
-        
+
+
 
 
         private Element BuildElements()

@@ -1,9 +1,10 @@
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace ExpressoBits.Inventories
 {
+    //[MovedFrom(false, null, null, "ObjectDropItemComponent")]
     [System.Serializable]
-    public class ObjectDropItemComponent : ItemComponent
+    public struct ObjectDropItemComponent : ItemComponent
     {
         public ItemObject itemObjectPrefab;
     }

@@ -13,17 +13,17 @@ namespace ExpressoBits.Inventories
         public Category Category => category;
         public ushort MaxStack => maxStack;
         //public ItemObject ItemObjectPrefab => itemObjectPrefab;
-        //public float Weight => weight;
+        public float Weight => weight;
 
         [SerializeField] private Database database;
         [SerializeField] private ushort id = 0;
         [SerializeField, TextArea] private string description;
         [SerializeField] private Sprite icon;
-        //[SerializeField, Min(0.01f)] private float weight = 0.1f;
+        [SerializeField, Min(0.01f)] private float weight = 0.1f;
         [SerializeField, Min(1)] private ushort maxStack = 64;
         //[SerializeField] private ItemObject itemObjectPrefab;
         [SerializeField] private Category category;
-
+        
         [SerializeReference]
         public List<ItemComponent> components = new List<ItemComponent>();
 
@@ -48,10 +48,10 @@ namespace ExpressoBits.Inventories
             {
                 foreach (var c in components)
                 {
-                    if (c is T) return c as T;
+                    if (c is T t) return t;
                 }
             }
-            return null;
+            return default(T);
         }
 
         public bool TryGetComponent<T>(out T component) where T : ItemComponent
@@ -60,14 +60,14 @@ namespace ExpressoBits.Inventories
             {
                 foreach (var c in components)
                 {
-                    if (c is T)
+                    if (c is T t)
                     {
-                        component = c as T;
+                        component = t;
                         return true;
                     }
                 }
             }
-            component = null;
+            component = default(T);
             return false;
         }
         #endregion

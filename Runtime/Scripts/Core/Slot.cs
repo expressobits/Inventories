@@ -1,5 +1,4 @@
 using System;
-using ExpressoBits.Inventories.Components;
 using UnityEngine;
 
 namespace ExpressoBits.Inventories
@@ -14,20 +13,7 @@ namespace ExpressoBits.Inventories
         public ushort Remaining => (ushort)(MaxStack - Amount);
         public bool IsEmpty => Amount <= 0;
         public bool IsSpace => Amount < MaxStack;
-        public float Weight
-        {
-            get
-            {
-                if(Item.TryGetComponent(out WeightItemComponent weightComponent))
-                {
-                    return weightComponent.weight * amount;
-                }
-                else
-                {
-                    return 0f * amount;
-                }
-            }
-        }
+        public float Weight => item.Weight * amount;
 
         [SerializeField] private Item item;
         [SerializeField] private ushort amount;
@@ -72,15 +58,6 @@ namespace ExpressoBits.Inventories
             uint reconstituted = (uint)BitConverter.ToInt32(recbytes, 0);
             return reconstituted;
         }
-
-        // public static implicit operator Slot(int s)
-        // {
-        //     byte[] b = BitConverter.GetBytes(s);
-        //     ushort itemId = (ushort)(b[0] | b[1] << 8);
-        //     ushort amount = (ushort)(b[2] << 16 | b[3] << 24);
-        //     Item item = Database
-        //     return new Slot() { itemId = itemId, amount = amount};
-        // }
 
         public static (ushort, ushort) SplitInt(uint s)
         {
