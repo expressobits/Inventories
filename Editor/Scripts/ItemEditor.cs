@@ -12,6 +12,9 @@ namespace ExpressoBits.Inventories.Editor
 
         private bool changeID;
         private ushort newId;
+
+        private SerializedProperty databaseProperty;
+
         #region Components Data
         private SerializedProperty componentsProperty;
         private Type elementType;
@@ -22,6 +25,7 @@ namespace ExpressoBits.Inventories.Editor
         private void OnEnable()
         {
             componentsProperty = serializedObject.FindProperty("components");
+            databaseProperty = serializedObject.FindProperty("database");
             list = (target as Item).components;
             components = (target as Item).components;
             elementType = Utility.GetElementType(list.GetType());
@@ -29,20 +33,44 @@ namespace ExpressoBits.Inventories.Editor
 
         public override void OnInspectorGUI()
         {
-            ShowBaseItemInformation();
-            ShowComponents();
+            ShowInformation();
             serializedObject.ApplyModifiedProperties();
+        }
+
+        public void ShowInformation()
+        {
+            ShowDictionaryInformation();
+            if (databaseProperty.objectReferenceValue != null)
+            {
+                ShowBaseItemInformation();
+                ShowComponents();
+            }
+        }
+
+        public void ShowDictionaryInformation()
+        {
+            Database lastDatabase = (Database)databaseProperty.objectReferenceValue;
+            EditorGUI.indentLevel--;
+            EditorGUILayout.BeginVertical("box");
+            EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField("ID Information");
+            Item item = (Item)target;
+            EditorGUILayout.PropertyField(databaseProperty);
+            ChangeID(item);
+            EditorGUILayout.EndVertical();
+            Database actualDatabase = (Database)databaseProperty.objectReferenceValue;
+            if(lastDatabase != actualDatabase)
+            {
+                if(lastDatabase != null) lastDatabase.Items.Remove(item);
+                if(actualDatabase != null) actualDatabase.Items.Add(item);
+            }
         }
 
         public void ShowBaseItemInformation()
         {
             Item item = (Item)target;
-            ChangeID(item);
+            
             Show(item, serializedObject);
-            if (GUILayout.Button("Delete"))
-            {
-                DeleteFromDatabase(item);
-            }
             EditorGUILayout.Space(32);
         }
 
@@ -99,8 +127,8 @@ namespace ExpressoBits.Inventories.Editor
             }
             else
             {
-                EditorGUILayout.LabelField("ID", item.ID.ToString());
-                if (GUILayout.Button("Change"))
+                EditorGUILayout.LabelField("ID", databaseProperty.objectReferenceValue != null ? item.ID.ToString() : "-");
+                if (GUILayout.Button("Change") && databaseProperty.objectReferenceValue != null)
                 {
                     changeID = true;
                     newId = (ushort)serializedObject.FindProperty("id").intValue;
@@ -127,15 +155,15 @@ namespace ExpressoBits.Inventories.Editor
         public void ShowComponents()
         {
             EditorGUILayout.Space(16);
-            EditorGUILayout.HelpBox("Item Components is in experimental state as it is still necessary to add a \"MoveFrom\" attribute to the script if it is renamed. Renaming a script without this attribute will make it impossible to view the entire list of components that contain at least one of that script.",MessageType.Info);
-            if(GUILayout.Button("See more here"))
+            EditorGUILayout.HelpBox("Item Components is in experimental state as it is still necessary to add a \"MoveFrom\" attribute to the script if it is renamed. Renaming a script without this attribute will make it impossible to view the entire list of components that contain at least one of that script.", MessageType.Info);
+            if (GUILayout.Button("See more here"))
             {
                 Application.OpenURL("https://forum.unity.com/threads/serializereference-data-loss-when-class-name-is-changed.736874/");
             }
             SerializedProperty list = componentsProperty;
-            if(components.Count > 0 && components[0] == null)
+            if (components.Count > 0 && components[0] == null)
             {
-                EditorGUILayout.HelpBox("There are invalid scripts on this list!",MessageType.Warning);
+                EditorGUILayout.HelpBox("There are invalid scripts on this list!", MessageType.Warning);
             }
             for (int i = 0; i < list.arraySize; i++)
             {
@@ -144,7 +172,7 @@ namespace ExpressoBits.Inventories.Editor
                 ItemComponent component = components[i];
                 DrawComponent(i, component, ref property);
                 EditorGUILayout.EndVertical();
-                
+
             }
             EditorUtils.DrawSplitter(false);
             DoAddButton();
@@ -153,9 +181,9 @@ namespace ExpressoBits.Inventories.Editor
         private void DrawComponent(int index, ItemComponent component, ref SerializedProperty componentProperty)
         {
             EditorUtils.DrawSplitter(false);
-            if(component == null)
+            if (component == null)
             {
-                EditorUtils.DrawHeaderNull("Invalid script "+ componentProperty.managedReferenceFullTypename,pos => OnContextClick(pos, index), null, null);
+                EditorUtils.DrawHeaderNull("Invalid script " + componentProperty.managedReferenceFullTypename, pos => OnContextClick(pos, index), null, null);
             }
             else
             {
@@ -165,7 +193,7 @@ namespace ExpressoBits.Inventories.Editor
                 if (icon == null) icon = (Texture2D)EditorGUIUtility.ObjectContent(null, component.GetType()).image;
                 if (icon == null) icon = AssetPreview.GetMiniTypeThumbnail(component.GetType());
                 if (icon == null) icon = EditorGUIUtility.FindTexture("cs Script Icon");
-                
+
                 bool displayContent = EditorUtils.DrawHeaderToggle(name, componentProperty, icon, pos => OnContextClick(pos, index));
                 if (displayContent)
                 {
@@ -179,7 +207,6 @@ namespace ExpressoBits.Inventories.Editor
                 }
             }
 
-            
         }
 
         private void OnContextClick(Vector2 position, int id)

@@ -31,22 +31,22 @@ namespace ExpressoBits.Inventories.Editor
         public delegate void CreateCallbackDelegate(string scriptName);
         public CreateCallbackDelegate onCreateCallback;
 
-        public DatabaseEditor databaseEditor;
+        //public DatabaseEditor databaseEditor;
 
-        public static void ShowWindow(Rect buttonRect, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
-        {
-            ShowWindow(buttonRect, typeof(Item), databaseEditor, createCallback);
-        }
+        // public static void ShowWindow(Rect buttonRect, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
+        // {
+        //     ShowWindow(buttonRect, typeof(Item), databaseEditor, createCallback);
+        // }
 
-        public static void ShowWindow(Rect buttonRect, Type type, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
-        {
-            AddItemWindow window = CreateInstance<AddItemWindow>();
-            buttonRect = GUIToScreenRect(buttonRect);
-            window.m_Type = type;
-            window.databaseEditor = databaseEditor;
-            window.onCreateCallback = createCallback;
-            window.ShowAsDropDown(buttonRect, new Vector2(buttonRect.width, 280f));
-        }
+        // public static void ShowWindow(Rect buttonRect, Type type, DatabaseEditor databaseEditor, CreateCallbackDelegate createCallback)
+        // {
+        //     AddItemWindow window = CreateInstance<AddItemWindow>();
+        //     buttonRect = GUIToScreenRect(buttonRect);
+        //     window.m_Type = type;
+        //     window.databaseEditor = databaseEditor;
+        //     window.onCreateCallback = createCallback;
+        //     window.ShowAsDropDown(buttonRect, new Vector2(buttonRect.width, 280f));
+        // }
 
         private void OnEnable()
         {
@@ -149,7 +149,7 @@ namespace ExpressoBits.Inventories.Editor
                     if (element.Children.Count == 0)
                     {
                         Type type = element.type;
-                        databaseEditor.Add(type);
+                        //databaseEditor.Add(type);
                         Close();
                     }
                     else

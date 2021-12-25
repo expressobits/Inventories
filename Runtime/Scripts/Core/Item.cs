@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace ExpressoBits.Inventories
 {
+    [CreateAssetMenu(fileName = "New Item", menuName = "Expresso Bits/Inventories/Item")]
     public class Item : ScriptableObject, IItem
     {
         public Database Database => database;
