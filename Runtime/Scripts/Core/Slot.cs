@@ -13,7 +13,17 @@ namespace ExpressoBits.Inventories
         public ushort Remaining => (ushort)(MaxStack - Amount);
         public bool IsEmpty => Amount <= 0;
         public bool IsSpace => Amount < MaxStack;
-        public float Weight => item.Weight * amount;
+        public float Weight
+        {
+            get
+            {
+                if(Item.TryGetComponent(out WeightItemComponent weight))
+                {
+                    return weight.Value * amount;
+                }
+                return 0f;
+            }
+        }
 
         [SerializeField] private Item item;
         [SerializeField] private ushort amount;

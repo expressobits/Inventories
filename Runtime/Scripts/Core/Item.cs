@@ -13,20 +13,17 @@ namespace ExpressoBits.Inventories
         public Sprite Icon => icon;
         public Category Category => category;
         public ushort MaxStack => maxStack;
-        //public ItemObject ItemObjectPrefab => itemObjectPrefab;
-        public float Weight => weight;
+        public List<ItemComponent> Components => components;
 
         [SerializeField] private Database database;
         [SerializeField] private ushort id = 0;
         [SerializeField, TextArea] private string description;
         [SerializeField] private Sprite icon;
-        [SerializeField, Min(0.01f)] private float weight = 0.1f;
         [SerializeField, Min(1)] private ushort maxStack = 64;
-        //[SerializeField] private ItemObject itemObjectPrefab;
         [SerializeField] private Category category;
         
-        [SerializeReference]
-        public List<ItemComponent> components = new List<ItemComponent>();
+        [SerializeField]
+        private List<ItemComponent> components = new List<ItemComponent>();
 
         internal void Setup(Database database, ushort id)
         {

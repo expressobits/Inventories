@@ -14,6 +14,7 @@ namespace ExpressoBits.Inventories.Editor
         private ushort newId;
 
         private SerializedProperty databaseProperty;
+        private Item item;
 
         #region Components Data
         private SerializedProperty componentsProperty;
@@ -26,8 +27,9 @@ namespace ExpressoBits.Inventories.Editor
         {
             componentsProperty = serializedObject.FindProperty("components");
             databaseProperty = serializedObject.FindProperty("database");
-            list = (target as Item).components;
-            components = (target as Item).components;
+            item = (Item)target;
+            list = item.Components;
+            components = item.Components;
             elementType = Utility.GetElementType(list.GetType());
         }
 
@@ -59,17 +61,31 @@ namespace ExpressoBits.Inventories.Editor
             ChangeID(item);
             EditorGUILayout.EndVertical();
             Database actualDatabase = (Database)databaseProperty.objectReferenceValue;
-            if(lastDatabase != actualDatabase)
+            if (lastDatabase != actualDatabase)
             {
-                if(lastDatabase != null) lastDatabase.Items.Remove(item);
-                if(actualDatabase != null) actualDatabase.Items.Add(item);
+                if (lastDatabase != null) lastDatabase.Items.Remove(item);
+                if (actualDatabase != null) actualDatabase.Add(item,item.ID);
+            }
+            else
+            {
+                if(!actualDatabase.HasItemObject(item))
+                {
+                    actualDatabase.Add(item,item.ID);
+                }
+                else
+                {
+                    if(HasItemId(item.ID, item))
+                    {
+                        serializedObject.FindProperty("id").intValue = actualDatabase.GetNewItemId();
+                    }
+                }
             }
         }
 
         public void ShowBaseItemInformation()
         {
             Item item = (Item)target;
-            
+
             Show(item, serializedObject);
             EditorGUILayout.Space(32);
         }
@@ -81,11 +97,9 @@ namespace ExpressoBits.Inventories.Editor
             SerializedProperty maxStackProperty = serializedObject.FindProperty("maxStack");
             SerializedProperty iconProperty = serializedObject.FindProperty("icon");
             SerializedProperty descriptionProperty = serializedObject.FindProperty("description");
-            SerializedProperty weightProperty = serializedObject.FindProperty("weight");
             SerializedProperty categoryProperty = serializedObject.FindProperty("category");
 
             EditorGUILayout.PropertyField(maxStackProperty);
-            EditorGUILayout.PropertyField(weightProperty);
             EditorGUILayout.PropertyField(iconProperty);
             EditorGUILayout.PropertyField(descriptionProperty);
             EditorGUILayout.PropertyField(categoryProperty);
@@ -137,34 +151,34 @@ namespace ExpressoBits.Inventories.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        public void DeleteFromDatabase(Item item)
-        {
-            if (EditorUtility.DisplayDialog("Delete select item?", "Delete item name " + item.name + "\nYou cannot undo this action", "Yes", "No"))
-            {
-                Database database = item.Database;
-                if (database) database.Items.Remove(item);
-                AssetDatabase.RemoveObjectFromAsset(item);
-                //string path = AssetDatabase.GetAssetPath((ScriptableObject)item);
-                //AssetDatabase.DeleteAsset(path);
-                AssetDatabase.SaveAssets();
-                Selection.activeGameObject = null;
-            }
-        }
+        // public void DeleteFromDatabase(Item item)
+        // {
+        //     if (EditorUtility.DisplayDialog("Delete select item?", "Delete item name " + item.name + "\nYou cannot undo this action", "Yes", "No"))
+        //     {
+        //         Database database = item.Database;
+        //         if (database) database.Items.Remove(item);
+        //         AssetDatabase.RemoveObjectFromAsset(item);
+        //         //string path = AssetDatabase.GetAssetPath((ScriptableObject)item);
+        //         //AssetDatabase.DeleteAsset(path);
+        //         AssetDatabase.SaveAssets();
+        //         Selection.activeGameObject = null;
+        //     }
+        // }
 
         #region Components
         public void ShowComponents()
         {
             EditorGUILayout.Space(16);
-            EditorGUILayout.HelpBox("Item Components is in experimental state as it is still necessary to add a \"MoveFrom\" attribute to the script if it is renamed. Renaming a script without this attribute will make it impossible to view the entire list of components that contain at least one of that script.", MessageType.Info);
-            if (GUILayout.Button("See more here"))
-            {
-                Application.OpenURL("https://forum.unity.com/threads/serializereference-data-loss-when-class-name-is-changed.736874/");
-            }
+            // EditorGUILayout.HelpBox("Item Components is in experimental state as it is still necessary to add a \"MoveFrom\" attribute to the script if it is renamed. Renaming a script without this attribute will make it impossible to view the entire list of components that contain at least one of that script.", MessageType.Info);
+            // if (GUILayout.Button("See more here"))
+            // {
+            //     Application.OpenURL("https://forum.unity.com/threads/serializereference-data-loss-when-class-name-is-changed.736874/");
+            // }
             SerializedProperty list = componentsProperty;
-            if (components.Count > 0 && components[0] == null)
-            {
-                EditorGUILayout.HelpBox("There are invalid scripts on this list!", MessageType.Warning);
-            }
+            // if (components.Count > 0 && components[0] == null)
+            // {
+            //     EditorGUILayout.HelpBox("There are invalid scripts on this list!", MessageType.Warning);
+            // }
             for (int i = 0; i < list.arraySize; i++)
             {
                 SerializedProperty property = list.GetArrayElementAtIndex(i);
@@ -180,12 +194,9 @@ namespace ExpressoBits.Inventories.Editor
 
         private void DrawComponent(int index, ItemComponent component, ref SerializedProperty componentProperty)
         {
+            SerializedObject nestedObject = new SerializedObject(componentProperty.objectReferenceValue);
             EditorUtils.DrawSplitter(false);
-            if (component == null)
-            {
-                EditorUtils.DrawHeaderNull("Invalid script " + componentProperty.managedReferenceFullTypename, pos => OnContextClick(pos, index), null, null);
-            }
-            else
+            if (component != null)
             {
                 string name = ObjectNames.NicifyVariableName(component.GetType().Name);
                 name = name.Replace(ObjectNames.NicifyVariableName(typeof(ItemComponent).Name), "");
@@ -197,13 +208,12 @@ namespace ExpressoBits.Inventories.Editor
                 bool displayContent = EditorUtils.DrawHeaderToggle(name, componentProperty, icon, pos => OnContextClick(pos, index));
                 if (displayContent)
                 {
-                    foreach (var child in componentProperty.EnumerateChildProperties())
-                    {
-                        EditorGUILayout.PropertyField(
-                            child,
-                            includeChildren: true
-                        );
-                    }
+                    //serializedObject.Update();
+                    //EditorGUILayout.ObjectField(componentProperty);
+                    // foreach (var child in componentProperty.EnumerateChildProperties())
+                    // {
+                    //     EditorGUILayout.PropertyField(child, true);
+                    // }
                 }
             }
 
@@ -248,16 +258,30 @@ namespace ExpressoBits.Inventories.Editor
 
         private void RemoveComponent(int id)
         {
-            SerializedProperty property = componentsProperty.GetArrayElementAtIndex(id);
-            property.managedReferenceValue = null;
+            ItemComponent component = components[id];
+            if (EditorUtility.DisplayDialog("Delete select item component?", "Delete item component name " + component.name + "\nYou cannot undo this action", "Yes", "No"))
+            {
+                SerializedProperty property = componentsProperty.GetArrayElementAtIndex(id);
+                property.objectReferenceValue = null;
 
-            Undo.SetCurrentGroupName("Remove Item Component");
+                Undo.SetCurrentGroupName(component == null ? "Remove Item Component" : $"Remove {component.name}");
 
-            componentsProperty.DeleteArrayElementAtIndex(id);
-            serializedObject.ApplyModifiedProperties();
+                // remove the array index itself from the list
+                componentsProperty.DeleteArrayElementAtIndex(id);
+                //UpdateEditorList();
+                serializedObject.ApplyModifiedProperties();
 
-            // Force save / refresh
-            ForceSave();
+                // Destroy the setting object after ApplyModifiedProperties(). If we do it before, redo
+                // actions will be in the wrong order and the reference to the setting object in the
+                // list will be lost.
+                if (component != null)
+                {
+                    Undo.DestroyObjectImmediate(component);
+                }
+
+                // Force save / refresh
+                ForceSave();
+            }
         }
 
         private void CreateScript(string scriptName)
@@ -282,11 +306,16 @@ namespace ExpressoBits.Inventories.Editor
 
         private void Add(Type type)
         {
-            object value = Activator.CreateInstance(type);
+            ScriptableObject newInstance = CreateInstance(type);
+            newInstance.name = ObjectNames.NicifyVariableName(type.Name);
             serializedObject.Update();
-            componentsProperty.arraySize++;
-            componentsProperty.GetArrayElementAtIndex(componentsProperty.arraySize - 1).managedReferenceValue = value;
-            serializedObject.ApplyModifiedProperties();
+            if (newInstance is ItemComponent newItemComponent)
+            {
+                item.Components.Add(newItemComponent);
+                AssetDatabase.AddObjectToAsset(newItemComponent, item);
+                AssetDatabase.SaveAssets();
+            }
+
         }
         #endregion
 

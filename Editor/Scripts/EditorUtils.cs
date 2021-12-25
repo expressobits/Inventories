@@ -211,7 +211,7 @@ namespace ExpressoBits.Inventories.Editor
 
             // Foldout
             // group.serializedObject.Update();
-            group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
+            // group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
             // group.serializedObject.ApplyModifiedProperties();
 
             // More options 2/2

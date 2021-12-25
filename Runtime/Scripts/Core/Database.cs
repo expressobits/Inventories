@@ -52,6 +52,15 @@ namespace ExpressoBits.Inventories
             return false;
         }
 
+        public bool HasItemObject(Item itemToCheck)
+        {
+            foreach(Item item in items)
+            {
+                if(item == itemToCheck) return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Get an item with id
         /// </summary>
