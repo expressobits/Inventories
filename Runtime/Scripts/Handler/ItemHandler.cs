@@ -4,7 +4,7 @@ using UnityEngine;
 namespace ExpressoBits.Inventories
 {
     [RequireComponent(typeof(Container))]
-    public class ItemObjectHandler : MonoBehaviour
+    public class ItemHandler : MonoBehaviour
     {
 
         public Container DefaultContainer => defaultInventoryContainer;
