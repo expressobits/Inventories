@@ -26,7 +26,7 @@ namespace ExpressoBits.Inventories
         /// <param name="item">T Item to be added</param>
         /// <param name="amount">Amount to be added</param>
         /// <returns>Amount not added in operation</returns>
-        public ushort Add(T item, ushort amount);
+        public ushort AddItem(T item, ushort amount);
 
         /// <summary>
         /// Remove item from index
@@ -34,7 +34,7 @@ namespace ExpressoBits.Inventories
         /// <param name="index">Slot index to be removed</param>
         /// <param name="amount">Amount to be removed</param>
         /// <returns>Amount not removed in operation</returns>
-        public ushort RemoveInIndex(int index, ushort amount);
+        public ushort RemoveItemAt(int index, ushort amount);
 
         /// <summary>
         /// Remove T item with a quantity and returns values that were not remove.
@@ -42,7 +42,7 @@ namespace ExpressoBits.Inventories
         /// <param name="item">T Item to be removed</param>
         /// <param name="amount">Amount to be removed</param>
         /// <returns>Amount not removed in operation</returns>
-        public ushort Remove(T item, ushort amount);
+        public ushort RemoveItem(T item, ushort amount);
 
         /// <summary>
         /// Clear container

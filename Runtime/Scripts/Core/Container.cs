@@ -8,7 +8,6 @@ namespace ExpressoBits.Inventories
     [AddComponentMenu("Inventories/" + nameof(Container))]
     public class Container : MonoBehaviour, IContainer<Item>, IEnumerable<Slot>
     {
-        //public List<Slot> Slots => slots;
         public Database Database => database;
         public int Count => slots.Count;
         public float Weight
@@ -46,7 +45,7 @@ namespace ExpressoBits.Inventories
         }
 
         #region IContainer Functions
-        public ushort Add(Item item, ushort amount = 1)
+        public ushort AddItem(Item item, ushort amount = 1)
         {
             for (int i = 0; i < slots.Count; i++)
             {
@@ -71,7 +70,7 @@ namespace ExpressoBits.Inventories
             return amount;
         }
 
-        public ushort RemoveInIndex(int index, ushort valueToRemove = 1)
+        public ushort RemoveItemAt(int index, ushort valueToRemove = 1)
         {
             ushort valueNoRemoved = valueToRemove;
             if (slots.Count > index)
@@ -93,7 +92,7 @@ namespace ExpressoBits.Inventories
             return valueNoRemoved;
         }
 
-        public ushort Remove(Item item, ushort valueToRemove = 1)
+        public ushort RemoveItem(Item item, ushort valueToRemove = 1)
         {
             ushort valueNoRemoved = valueToRemove;
             for (int i = 0; i < slots.Count; i++)
