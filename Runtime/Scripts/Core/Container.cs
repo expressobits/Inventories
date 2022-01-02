@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ExpressoBits.Inventories
 {
@@ -45,6 +46,21 @@ namespace ExpressoBits.Inventories
         public Action OnChanged;
         #endregion
 
+        #region Unity Events
+        public UnityEvent<Item,ushort> OnItemAddUnityEvent;
+        public UnityEvent<Item,ushort> OnItemRemoveUnityEvent;
+
+        public UnityEvent<Slot> OnAddUnityEvent;
+        public UnityEvent<Slot> OnRemoveUnityEvent;
+        public UnityEvent<int> OnRemoveAtUnityEvent;
+        public UnityEvent<int> OnUpdateUnityEvent;
+
+        public UnityEvent OnOpenUnityEvent;
+        public UnityEvent OnCloseUnityEvent;
+
+        public UnityEvent OnChangedUnityEvent;
+        #endregion
+
         private void Awake()
         {
             slots = new List<Slot>();
@@ -68,7 +84,9 @@ namespace ExpressoBits.Inventories
                 valueToAdd = 0;
             }
             OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+            OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
             return valueToAdd;
         }
 
@@ -85,7 +103,9 @@ namespace ExpressoBits.Inventories
                     if (valueToAdd == 0)
                     {
                         OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+                        OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
                         OnChanged?.Invoke();
+                        OnChangedUnityEvent?.Invoke();
                         return 0;
                     }
                 }
@@ -96,7 +116,9 @@ namespace ExpressoBits.Inventories
                 valueToAdd = 0;
             }
             OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+            OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
             return valueToAdd;
         }
 
@@ -117,7 +139,9 @@ namespace ExpressoBits.Inventories
                     }
                 }
                 OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+                OnItemRemoveUnityEvent?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
                 OnChanged?.Invoke();
+                OnChangedUnityEvent?.Invoke();
             }
             return valueNoRemoved;
         }
@@ -140,7 +164,9 @@ namespace ExpressoBits.Inventories
                 }
             }
             OnItemRemove?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
+            OnItemRemoveUnityEvent?.Invoke(item, (ushort)(valueToRemove - valueNoRemoved));
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
             return valueNoRemoved;
         }
 
@@ -178,28 +204,35 @@ namespace ExpressoBits.Inventories
             {
                 slots[index] = value;
                 OnUpdate?.Invoke(index);
+                OnUpdateUnityEvent?.Invoke(index);
             }
         }
 
         public void Add(Slot slot)
         {
             OnAdd?.Invoke(slot);
+            OnAddUnityEvent?.Invoke(slot);
             slots.Add(slot);
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
         }
 
         public void RemoveAt(int index)
         {
             OnRemoveAt?.Invoke(index);
+            OnRemoveAtUnityEvent?.Invoke(index);
             slots.RemoveAt(index);
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
         }
 
         public void Remove(Slot slot)
         {
             OnRemove?.Invoke(slot);
+            OnRemoveUnityEvent?.Invoke(slot);
             slots.Remove(slot);
             OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
         }
 
         public int IndexOf(Slot slot)
@@ -239,12 +272,14 @@ namespace ExpressoBits.Inventories
         {
             isOpen = true;
             OnOpen?.Invoke();
+            OnOpenUnityEvent?.Invoke();
         }
 
         public void Close()
         {
             isOpen = false;
             OnClose?.Invoke();
+            OnCloseUnityEvent?.Invoke();
         }
         #endregion
 
