@@ -10,6 +10,7 @@ namespace ExpressoBits.Inventories
     {
         public Database Database => database;
         public int Count => slots.Count;
+        public bool IsOpen => isOpen;
         public float Weight
         {
             get
@@ -24,15 +25,20 @@ namespace ExpressoBits.Inventories
         [SerializeField] private List<Slot> slots = new List<Slot>();
         [SerializeField] private bool limitedSlots;
         [SerializeField] private int limitedAmountOfSlots = 8;
+        [SerializeField] private bool isOpen;
 
         #region Actions
-        public Action<Item, ushort> OnItemAdd;
-        public Action<Item, ushort> OnItemRemove;
+        public delegate void ItemEvent(Item item, ushort amount);
+        public ItemEvent OnItemAdd;
+        public ItemEvent OnItemRemove;
 
         public Action<Slot> OnAdd;
         public Action<Slot> OnRemove;
         public Action<int> OnRemoveAt;
         public Action<int> OnUpdate;
+
+        public Action OnOpen;
+        public Action OnClose;
         /// <summary>
         /// Basic client received update event
         /// </summary>
@@ -45,29 +51,53 @@ namespace ExpressoBits.Inventories
         }
 
         #region IContainer Functions
+        public ushort AddItemAt(Item item, int index, ushort amount = 1)
+        {
+            ushort valueToAdd = amount;
+            if (slots.Count > index)
+            {
+                Slot slot = slots[index];
+                if(slot.Item == item)
+                {
+                    valueToAdd = slot.Add(valueToAdd);
+                }
+            }
+            if ((!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
+            {
+                Add(new Slot(item, amount) { });
+                valueToAdd = 0;
+            }
+            OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+            OnChanged?.Invoke();
+            return valueToAdd;
+        }
+
         public ushort AddItem(Item item, ushort amount = 1)
         {
+            ushort valueToAdd = amount;
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];
                 if (slot.ItemID == item.ID)
                 {
-                    amount = slot.Add(amount);
+                    valueToAdd = slot.Add(valueToAdd);
                     this[i] = slot;
-                    if (amount == 0)
+                    if (valueToAdd == 0)
                     {
-                        OnItemAdd?.Invoke(item, amount);
+                        OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+                        OnChanged?.Invoke();
                         return 0;
                     }
                 }
             }
-            if (!limitedSlots || slots.Count < limitedAmountOfSlots)
+            if ((!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
             {
-                Add(new Slot(item, amount) { });
-                amount = 0;
+                Add(new Slot(item, valueToAdd) { });
+                valueToAdd = 0;
             }
-            OnItemAdd?.Invoke(item, amount);
-            return amount;
+            OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
+            OnChanged?.Invoke();
+            return valueToAdd;
         }
 
         public ushort RemoveItemAt(int index, ushort valueToRemove = 1)
@@ -155,18 +185,21 @@ namespace ExpressoBits.Inventories
         {
             OnAdd?.Invoke(slot);
             slots.Add(slot);
+            OnChanged?.Invoke();
         }
 
         public void RemoveAt(int index)
         {
             OnRemoveAt?.Invoke(index);
             slots.RemoveAt(index);
+            OnChanged?.Invoke();
         }
 
         public void Remove(Slot slot)
         {
             OnRemove?.Invoke(slot);
             slots.Remove(slot);
+            OnChanged?.Invoke();
         }
 
         public int IndexOf(Slot slot)
@@ -198,6 +231,20 @@ namespace ExpressoBits.Inventories
             ushort amount = split.Item2;
             Item item = Database.GetItem(itemId);
             return new Slot(item, amount) { };
+        }
+        #endregion
+
+        #region Storage Calls
+        public void Open()
+        {
+            isOpen = true;
+            OnOpen?.Invoke();
+        }
+
+        public void Close()
+        {
+            isOpen = false;
+            OnClose?.Invoke();
         }
         #endregion
 
