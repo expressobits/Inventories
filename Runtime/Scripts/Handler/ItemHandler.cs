@@ -101,6 +101,15 @@ namespace ExpressoBits.Inventories
         }
 
         #region Container Interactions
+        public bool OpenDefaultContainer()
+        {
+            if(Open(defaultInventoryContainer))
+            {
+                return true;
+            }
+            return false;
+        }
+
         public bool Open(Container container)
         {
             if (container.IsOpen) return false;

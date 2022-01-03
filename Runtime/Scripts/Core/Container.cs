@@ -122,6 +122,11 @@ namespace ExpressoBits.Inventories
             return valueToAdd;
         }
 
+        public void SetOpen(bool isOpen)
+        {
+            this.isOpen = isOpen;
+        }
+
         public ushort RemoveItemAt(int index, ushort valueToRemove = 1)
         {
             ushort valueNoRemoved = valueToRemove;
