@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ExpressoBits.Inventories
 {
@@ -23,6 +24,12 @@ namespace ExpressoBits.Inventories
         public Action<Container> OnOpen;
         public Action<Container> OnClose;
 
+        public UnityEvent<ItemObject> OnDropUnityEvent;
+        public UnityEvent<ItemObject> OnPickUnityEvent;
+        public UnityEvent<Item,ushort> OnAddUnityEvent;
+        public UnityEvent<Container> OnOpenUnityEvent;
+        public UnityEvent<Container> OnCloseUnityEvent;
+
         public void Drop(Item item, ushort amount = 1)
         {
             for (int i = 0; i < amount; i++)
@@ -32,6 +39,7 @@ namespace ExpressoBits.Inventories
                     ItemObject itemObjectPrefab = dropItemComponent.itemObjectPrefab;
                     ItemObject itemObject = Instantiate(itemObjectPrefab, transform.position, transform.rotation);
                     OnDrop?.Invoke(itemObject);
+                    OnDropUnityEvent?.Invoke(itemObject);
                 }
             }
         }
@@ -40,6 +48,7 @@ namespace ExpressoBits.Inventories
         {
             ushort valueNoAdd = container.AddItem(item, amount);
             OnAdd?.Invoke(item, (ushort)(amount - valueNoAdd));
+            OnAddUnityEvent?.Invoke(item, (ushort)(amount - valueNoAdd));
             if (dropNotAddedValues)
             {
                 Drop(item, valueNoAdd);
@@ -64,6 +73,7 @@ namespace ExpressoBits.Inventories
             if (AddToContainer(container, item) == 0)
             {
                 OnPick?.Invoke(itemObject);
+                OnPickUnityEvent?.Invoke(itemObject);
                 Destroy(itemObject.gameObject);
             }
         }
@@ -95,6 +105,7 @@ namespace ExpressoBits.Inventories
         {
             if (container.IsOpen) return false;
             OnOpen?.Invoke(container);
+            OnOpenUnityEvent?.Invoke(container);
             container.Open();
             return true;
         }
@@ -103,6 +114,7 @@ namespace ExpressoBits.Inventories
         {
             if (!container.IsOpen) return false;
             OnClose?.Invoke(container);
+            OnCloseUnityEvent?.Invoke(container);
             container.Close();
             return true;
         }
