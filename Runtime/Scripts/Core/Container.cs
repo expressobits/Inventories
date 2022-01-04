@@ -275,6 +275,7 @@ namespace ExpressoBits.Inventories
         #region Storage Calls
         public void Open()
         {
+            if(isOpen) return;
             isOpen = true;
             OnOpen?.Invoke();
             OnOpenUnityEvent?.Invoke();
@@ -282,6 +283,7 @@ namespace ExpressoBits.Inventories
 
         public void Close()
         {
+            if(!isOpen) return;
             isOpen = false;
             OnClose?.Invoke();
             OnCloseUnityEvent?.Invoke();

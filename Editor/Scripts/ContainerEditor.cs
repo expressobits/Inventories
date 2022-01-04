@@ -51,7 +51,7 @@ namespace ExpressoBits.Inventories.Editor
                 slotsSerializedProperty.arraySize = Mathf.Min(limitedAmountOfSlotsSerializedProperty.intValue,slotsSerializedProperty.arraySize);
             }
             
-            EditorGUILayout.BeginVertical("box");
+            EditorGUILayout.LabelField("Events");
             EditorGUILayout.PropertyField(OnItemAddUnityEventSerializedProperty);
             EditorGUILayout.PropertyField(OnItemRemoveUnityEventSerializedProperty);
             EditorGUILayout.Space(10);
@@ -63,7 +63,6 @@ namespace ExpressoBits.Inventories.Editor
             EditorGUILayout.Space(10);
             EditorGUILayout.PropertyField(OnOpenUnityEventSerializedProperty);
             EditorGUILayout.PropertyField(OnCloseUnityEventSerializedProperty);
-            EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
 
