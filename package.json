@@ -1,7 +1,7 @@
 {
     "name": "br.com.expressobits.inventories",
     "displayName": "EB Inventories",
-    "version": "0.0.1-preview",
+    "version": "0.8.0-preview",
     "unity": "2020.3",
     "description": "Inventory system for unity",
     "keywords": [
