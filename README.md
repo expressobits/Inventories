@@ -4,11 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](MIT)
 [![Twitter: ScriptsEngineer](https://img.shields.io/twitter/follow/ScriptsEngineer.svg?style=social)](https://twitter.com/ScriptsEngineer)
 
-![Demo4](https://raw.githubusercontent.com/wiki/ExpressoBits/EBConsole/Demo4.gif)
-
 ## Features
-
-✔️ Easy item management by scriptable objects.
 
 ✔️ Easy item management by scriptable objects.
 
