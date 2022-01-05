@@ -50,7 +50,7 @@ Scopes:
 
 ## Components
 
-### ![Container](https://raw.githubusercontent.com/ExpressoBits/Inventories/master/Editor/Textures/Container.png) Container
+### ![Container](https://raw.githubusercontent.com/ExpressoBits/Inventories/master/Editor/Textures/container.png) Container
 
 Container is responsible for storing items inside slots. Slots store an amount of a certain item. Container may or may not be limited by the amount of slots.
 
