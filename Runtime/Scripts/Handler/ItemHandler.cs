@@ -11,8 +11,6 @@ namespace ExpressoBits.Inventories
     public class ItemHandler : MonoBehaviour
     {
 
-        public Container DefaultContainer => defaultInventoryContainer;
-
         [SerializeField]
         private Container defaultInventoryContainer;
 
@@ -20,30 +18,50 @@ namespace ExpressoBits.Inventories
         public ItemObjectEvent OnDrop;
         public ItemObjectEvent OnPick;
         public Container.ItemEvent OnAdd;
-
         public Action<Container> OnOpen;
         public Action<Container> OnClose;
 
         public UnityEvent<ItemObject> OnDropUnityEvent;
         public UnityEvent<ItemObject> OnPickUnityEvent;
-        public UnityEvent<Item,ushort> OnAddUnityEvent;
+        public UnityEvent<Item, ushort> OnAddUnityEvent;
         public UnityEvent<Container> OnOpenUnityEvent;
         public UnityEvent<Container> OnCloseUnityEvent;
 
-        public void Drop(Item item, ushort amount = 1)
+        /// <summary>
+        /// Container default of itemHandler
+        /// </summary>
+        public Container DefaultContainer => defaultInventoryContainer;
+
+        /// <summary>
+        /// Drop a quantity of the item with ObjectDropItemComponent
+        /// </summary>
+        /// <param name="item">Item with ObjectDropItemComponent</param>
+        /// <param name="amount">Amount of item</param>
+        /// <returns>Return true if drop with success</returns>
+        public bool Drop(Item item, ushort amount = 1)
         {
-            for (int i = 0; i < amount; i++)
+            if (item.TryGetComponent(out ObjectDropItemComponent dropItemComponent))
             {
-                if (item.TryGetComponent(out ObjectDropItemComponent dropItemComponent))
+                ItemObject itemObjectPrefab = dropItemComponent.itemObjectPrefab;
+                for (int i = 0; i < amount; i++)
                 {
-                    ItemObject itemObjectPrefab = dropItemComponent.itemObjectPrefab;
                     ItemObject itemObject = Instantiate(itemObjectPrefab, transform.position, transform.rotation);
                     OnDrop?.Invoke(itemObject);
                     OnDropUnityEvent?.Invoke(itemObject);
                 }
+                return true;
             }
+            return false;
         }
 
+        /// <summary>
+        /// Add an amount of an item to a container, if this addition fails and the dropNotAddedValues is true then a drop of the unadded items occurs
+        /// </summary>
+        /// <param name="container">Container to add items</param>
+        /// <param name="item">Type of item to be added</param>
+        /// <param name="amount">Amount of item to be added</param>
+        /// <param name="dropNotAddedValues">Drop items not added successfully</param>
+        /// <returns>dropNotAddedValues is false returns amount not added, if dropNotAddedValues is true returns 0</returns>
         public ushort AddToContainer(Container container, Item item, ushort amount = 1, bool dropNotAddedValues = false)
         {
             ushort valueNoAdd = container.AddItem(item, amount);
@@ -57,6 +75,12 @@ namespace ExpressoBits.Inventories
             return valueNoAdd;
         }
 
+        /// <summary>
+        /// Drops a amount of items from a container
+        /// </summary>
+        /// <param name="container">Container to drop itens</param>
+        /// <param name="index">Item slot Index</param>
+        /// <param name="amount">Amount of item to drop</param>
         public void DropFromContainer(Container container, int index, ushort amount = 1)
         {
             Slot slot = container[index];
@@ -66,6 +90,11 @@ namespace ExpressoBits.Inventories
             Drop(item, amountForDrop);
         }
 
+        /// <summary>
+        /// Pick a itemObject to container
+        /// </summary>
+        /// <param name="container">Container to add item</param>
+        /// <param name="itemObject">ItemObject to pick</param>
         public void PickToContainer(Container container, ItemObject itemObject)
         {
             if (!itemObject.IsPickable) return;
@@ -88,7 +117,7 @@ namespace ExpressoBits.Inventories
         /// <param name="index">Index of slot of Container from </param>
         /// <param name="amount">Amount of item exchanged of container from</param>
         /// <param name="to">Destination container of the item to be exchanged</param>
-        public void SwapBetweenContainers(Container from, int index, ushort amount, Container to)
+        public void MoveBetweenContainers(Container from, int index, ushort amount, Container to)
         {
             Slot slot = from[index];
             Item item = slot.Item;
@@ -100,16 +129,45 @@ namespace ExpressoBits.Inventories
             Drop(item, amountNotUndo);
         }
 
-        #region Container Interactions
-        public bool OpenDefaultContainer()
+        /// <summary>
+        /// Swap slot information from different or non-containers
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="index"></param>
+        /// <param name="otherContainer"></param>
+        /// <param name="otherIndex"></param>
+        public void SwapBetweenContainers(Container container, int index, Container otherContainer, int otherIndex)
         {
-            if(Open(defaultInventoryContainer))
-            {
-                return true;
-            }
-            return false;
+            Slot slot = container[index];
+            Slot otherSlot = otherContainer[otherIndex];
+            container[index] = otherSlot;
+            otherContainer[otherIndex] = slot;
         }
 
+        #region Container Interactions
+        /// <summary>
+        /// Open Default Container
+        /// </summary>
+        /// <returns>Return true if container opened with success</returns>
+        public bool OpenDefaultContainer()
+        {
+            return Open(defaultInventoryContainer);
+        }
+
+        /// <summary>
+        /// Close Default Container
+        /// </summary>
+        /// <returns>Return true if container closed with success</returns>
+        public bool CloseDefaultContainer()
+        {
+            return Close(defaultInventoryContainer);
+        }
+
+        /// <summary>
+        /// Open a container
+        /// </summary>
+        /// <param name="container">Container to be opened, container cannot be opened</param>
+        /// <returns>Return true if container opened with success</returns>
         public bool Open(Container container)
         {
             if (container.IsOpen) return false;
@@ -119,6 +177,11 @@ namespace ExpressoBits.Inventories
             return true;
         }
 
+        /// <summary>
+        /// Close a container
+        /// </summary>
+        /// <param name="container">Container to be closed, container cannot be closed</param>
+        /// <returns>Return true if container closed with success</returns>
         public bool Close(Container container)
         {
             if (!container.IsOpen) return false;
