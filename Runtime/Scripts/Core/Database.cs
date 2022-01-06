@@ -10,7 +10,10 @@ namespace ExpressoBits.Inventories
     public class Database : ScriptableObject
     {
         public List<Item> Items => items;
+        public List<Recipe> Recipes => recipes;
+        
         [SerializeField] private List<Item> items;
+        [SerializeField] private List<Recipe> recipes;
 
         /// <summary>
         /// Generate new id for an item
