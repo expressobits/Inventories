@@ -61,7 +61,7 @@ namespace ExpressoBits.Inventories
                     if (crafting.IsFinished && canCraft)
                     {
                         Recipe recipe = Recipes[crafting.Index];
-                        container.AddItem(recipe.Product);
+                        container.AddItem(recipe.Product, (ushort)recipe.AmountOfProduct);
                         OnCrafted?.Invoke(recipe);
                         //containerInteractor.AddOrDropItem(recipes.AllRecipes[crafting.Index].Product);
                         RemoveAt(i);
