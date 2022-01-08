@@ -210,6 +210,7 @@ namespace ExpressoBits.Inventories
                 slots[index] = value;
                 OnUpdate?.Invoke(index);
                 OnUpdateUnityEvent?.Invoke(index);
+                OnChanged?.Invoke();
             }
         }
 
