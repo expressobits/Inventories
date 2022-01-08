@@ -8,13 +8,13 @@ namespace ExpressoBits.Inventories
     {
         [SerializeField] private GameObject defaultGameObject;
         [SerializeField] private HotBar hotBar;
-        private Dictionary<Item, GameObject> handObjects = new Dictionary<Item, GameObject>();
+        private readonly Dictionary<Item, GameObject> handObjects = new Dictionary<Item, GameObject>();
         private Item lastItem;
 
         private void OnEnable()
         {
             hotBar.OnChangeSelection += ChangeSelection;
-            //hotBar.Container.OnChanged += ChangeSelection;
+            hotBar.Container.OnChanged += ChangeContainer;
             defaultGameObject.SetActive(false);
             ChangeSelection();
         }
@@ -22,7 +22,13 @@ namespace ExpressoBits.Inventories
         private void OnDisable()
         {
             hotBar.OnChangeSelection -= ChangeSelection;
-            //hotBar.Container.OnChanged -= ChangeSelection;
+            hotBar.Container.OnChanged -= ChangeContainer;
+        }
+
+        private void ChangeContainer()
+        {
+            Item item = hotBar.SelectedItem;
+            if (lastItem != item) ChangeSelection();
         }
 
         private void ChangeSelection()
