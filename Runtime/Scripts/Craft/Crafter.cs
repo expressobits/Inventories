@@ -14,8 +14,12 @@ namespace ExpressoBits.Inventories
         /// </summary>
         public List<Recipe> Recipes => container.Database.Recipes;
 
+        public List<CraftStation> NearCraftStations => nearCraftStations;
+
         private List<Crafting> craftings = new List<Crafting>();
         private Container container;
+        [SerializeField] private List<CraftStationObject> nearCraftStationObject = new List<CraftStationObject>();
+        [SerializeField] private List<CraftStation> nearCraftStations = new List<CraftStation>();
 
 
         [SerializeField] private bool canCraft = true;
@@ -34,6 +38,9 @@ namespace ExpressoBits.Inventories
         public Action<Crafting> OnAdd;
         public Action<int> OnRemoveAt;
         public Action<int> OnUpdate;
+
+        public Action<CraftStation> OnAddNearCraftStation;
+        public Action<CraftStation> OnRemoveNearCraftStation;
 
         public UnityEvent<int> OnUpdateUnityEvent;
 
@@ -89,6 +96,12 @@ namespace ExpressoBits.Inventories
         public bool CanCraft(Recipe recipe)
         {
             if (isLimitCrafts && craftings.Count >= craftsLimit) return false;
+
+            foreach (var needCraftStation in recipe.NeedCraftStations)
+            {
+                if(!nearCraftStations.Contains(needCraftStation)) return false;
+            }
+
             foreach (var items in recipe.RequiredItems)
             {
                 if (!container.Has(items.Item, items.Amount)) return false;
@@ -138,6 +151,24 @@ namespace ExpressoBits.Inventories
                     Add(crafting);
                     OnRequestCraft?.Invoke(recipe);
                 }
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!other.TryGetComponent(out CraftStationObject craftStationObject)) return;
+            nearCraftStationObject.Add(craftStationObject);
+            nearCraftStations.Add(craftStationObject.CraftStation);
+            OnAddNearCraftStation?.Invoke(craftStationObject.CraftStation);
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (!other.TryGetComponent(out CraftStationObject craftStationObject)) return;
+            if(nearCraftStationObject.Remove(craftStationObject))
+            {
+                nearCraftStations.Remove(craftStationObject.CraftStation);
+                OnRemoveNearCraftStation?.Invoke(craftStationObject.CraftStation);
             }
         }
 

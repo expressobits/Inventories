@@ -29,10 +29,16 @@ namespace ExpressoBits.Inventories
         /// </summary>
         public ushort AmountOfProduct => amountOfProduct;
 
+        /// <summary>
+        /// Craft stations that are needed for the recipe to be crafted
+        /// </summary>
+        public CraftStation[] NeedCraftStations => needCraftStations;
+
         [SerializeField] private List<RequiredItem> requiredItems;
         [SerializeField] private Item product;
         [SerializeField] private ushort amountOfProduct = 1;
         [SerializeField] private float timeForCraft = 4f;
+        [SerializeField] private CraftStation[] needCraftStations;
     }
 }
 
