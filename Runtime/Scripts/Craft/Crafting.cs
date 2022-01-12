@@ -22,11 +22,13 @@ namespace ExpressoBits.Inventories
         
         private int index;
         private float time;
+        private readonly int id;
 
         public Crafting(int index, float time)
         {
             this.index = index;
             this.time = time;
+            id = UnityEngine.Random.Range(0, int.MaxValue);
         }
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace ExpressoBits.Inventories
 
         public bool Equals(Crafting other)
         {
-            return index == other.index && time == other.time;
+            return index == other.index && id == other.id;
         }
     }
 }

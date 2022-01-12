@@ -18,6 +18,7 @@ namespace ExpressoBits.Inventories
 
         private List<Crafting> craftings = new List<Crafting>();
         private Container container;
+        [SerializeField] private bool trackNearStations = false;
         [SerializeField] private List<CraftStationObject> nearCraftStationObject = new List<CraftStationObject>();
         [SerializeField] private List<CraftStation> nearCraftStations = new List<CraftStation>();
 
@@ -99,7 +100,7 @@ namespace ExpressoBits.Inventories
 
             foreach (var needCraftStation in recipe.NeedCraftStations)
             {
-                if(!nearCraftStations.Contains(needCraftStation)) return false;
+                if (!nearCraftStations.Contains(needCraftStation)) return false;
             }
 
             foreach (var items in recipe.RequiredItems)
@@ -137,6 +138,7 @@ namespace ExpressoBits.Inventories
 
         public void RemoveAt(int index)
         {
+            if(craftings.Count <= index) return;
             craftings.RemoveAt(index);
             OnRemoveAt?.Invoke(index);
         }
@@ -154,8 +156,34 @@ namespace ExpressoBits.Inventories
             }
         }
 
+        public void CancelCraft(Crafting crafting)
+        {
+            int index = craftings.IndexOf(crafting);
+            CancelCraft(index);
+        }
+
+        public int IndexOf(Crafting crafting)
+        {
+            return craftings.IndexOf(crafting);
+        }
+
+        public void CancelCraft(int index)
+        {
+            if (index < 0) return;
+            if (craftings.Count <= index) return;
+            Crafting crafting = craftings[index];
+            if (crafting.IsFinished) return;
+            Recipe recipe = Recipes[crafting.Index];
+            foreach (var requiredItem in recipe.RequiredItems)
+            {
+                container.AddItem(requiredItem.Item, requiredItem.Amount);
+            }
+            RemoveAt(index);
+        }
+
         private void OnTriggerEnter(Collider other)
         {
+            if (!trackNearStations) return;
             if (!other.TryGetComponent(out CraftStationObject craftStationObject)) return;
             nearCraftStationObject.Add(craftStationObject);
             nearCraftStations.Add(craftStationObject.CraftStation);
@@ -164,8 +192,9 @@ namespace ExpressoBits.Inventories
 
         private void OnTriggerExit(Collider other)
         {
+            if (!trackNearStations) return;
             if (!other.TryGetComponent(out CraftStationObject craftStationObject)) return;
-            if(nearCraftStationObject.Remove(craftStationObject))
+            if (nearCraftStationObject.Remove(craftStationObject))
             {
                 nearCraftStations.Remove(craftStationObject.CraftStation);
                 OnRemoveNearCraftStation?.Invoke(craftStationObject.CraftStation);
