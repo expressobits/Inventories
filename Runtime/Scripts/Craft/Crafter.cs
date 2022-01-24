@@ -22,8 +22,10 @@ namespace ExpressoBits.Inventories
         [SerializeField] private List<CraftStationObject> nearCraftStationObject = new List<CraftStationObject>();
         [SerializeField] private List<CraftStation> nearCraftStations = new List<CraftStation>();
 
-
-        [SerializeField] private bool canCraft = true;
+        /// <summary>
+        /// Defines whether or not the crafter can finish a craft that has passed its creation time
+        /// </summary>
+        [SerializeField] private bool canFinishCraft = true;
 
         /// <summary>
         /// Is the crafting list limited?
@@ -66,12 +68,11 @@ namespace ExpressoBits.Inventories
                 {
                     Crafting crafting = craftings[i];
                     crafting.AddTimeElapsed(Time.deltaTime);
-                    if (crafting.IsFinished && canCraft)
+                    if (crafting.IsFinished && canFinishCraft)
                     {
                         Recipe recipe = Recipes[crafting.Index];
-                        container.AddItem(recipe.Product, (ushort)recipe.AmountOfProduct);
+                        container.AddItem(recipe.Product, recipe.AmountOfProduct);
                         OnCrafted?.Invoke(recipe);
-                        //containerInteractor.AddOrDropItem(recipes.AllRecipes[crafting.Index].Product);
                         RemoveAt(i);
                         i--;
                     }
@@ -83,9 +84,13 @@ namespace ExpressoBits.Inventories
             }
         }
 
-        public void SetCanCraft(bool canCraft)
+        /// <summary>
+        /// Defines whether or not the crafter can finish a craft that has passed its creation time
+        /// </summary>
+        /// <param name="canFinishCraft">Can finish a craft ?</param>
+        public void SetCanFinishCraft(bool canFinishCraft)
         {
-            this.canCraft = canCraft;
+            this.canFinishCraft = canFinishCraft;
         }
 
         /// <summary>
@@ -138,7 +143,7 @@ namespace ExpressoBits.Inventories
 
         public void RemoveAt(int index)
         {
-            if(craftings.Count <= index) return;
+            if (craftings.Count <= index) return;
             craftings.RemoveAt(index);
             OnRemoveAt?.Invoke(index);
         }
