@@ -64,17 +64,18 @@ namespace ExpressoBits.Inventories.Editor
             if (lastDatabase != actualDatabase)
             {
                 if (lastDatabase != null) lastDatabase.Items.Remove(item);
-                if (actualDatabase != null) actualDatabase.Add(item,item.ID);
+                if (actualDatabase != null) actualDatabase.Add(item, item.ID);
             }
             else
             {
-                if(!actualDatabase.HasItemObject(item))
+                if (actualDatabase == null) return;
+                if (!actualDatabase.HasItemObject(item))
                 {
-                    actualDatabase.Add(item,item.ID);
+                    actualDatabase.Add(item, item.ID);
                 }
                 else
                 {
-                    if(HasItemId(item.ID, item))
+                    if (HasItemId(item.ID, item))
                     {
                         serializedObject.FindProperty("id").intValue = actualDatabase.GetNewItemId();
                     }

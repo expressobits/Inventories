@@ -83,6 +83,7 @@ namespace ExpressoBits.Inventories
         /// <param name="amount">Amount of item to drop</param>
         public void DropFromContainer(Container container, int index, ushort amount = 1)
         {
+            if(container.Count <= index) return;
             Slot slot = container[index];
             Item item = slot.Item;
             ushort amountNotRemoved = container.RemoveItemAt(index, amount);

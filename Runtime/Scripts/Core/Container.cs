@@ -76,6 +76,7 @@ namespace ExpressoBits.Inventories
                 if(slot.Item == item)
                 {
                     valueToAdd = slot.Add(valueToAdd);
+                    this[index] = slot;
                 }
             }
             if ((!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
@@ -210,6 +211,7 @@ namespace ExpressoBits.Inventories
                 slots[index] = value;
                 OnUpdate?.Invoke(index);
                 OnUpdateUnityEvent?.Invoke(index);
+                OnChanged?.Invoke();
             }
         }
 
