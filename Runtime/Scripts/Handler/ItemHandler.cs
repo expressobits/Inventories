@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -26,6 +27,8 @@ namespace ExpressoBits.Inventories
         public UnityEvent<Item, ushort> OnAddUnityEvent;
         public UnityEvent<Container> OnOpenUnityEvent;
         public UnityEvent<Container> OnCloseUnityEvent;
+
+        private List<Container> openedContainers = new List<Container>();
 
         /// <summary>
         /// Container default of itemHandler
@@ -171,6 +174,8 @@ namespace ExpressoBits.Inventories
         /// <returns>Return true if container opened with success</returns>
         public bool Open(Container container)
         {
+            if (openedContainers.Contains(container)) return false;
+            openedContainers.Add(container);
             if (container.IsOpen) return false;
             OnOpen?.Invoke(container);
             OnOpenUnityEvent?.Invoke(container);
@@ -185,11 +190,23 @@ namespace ExpressoBits.Inventories
         /// <returns>Return true if container closed with success</returns>
         public bool Close(Container container)
         {
+            if (!openedContainers.Contains(container)) return false;
+            openedContainers.Remove(container);
             if (!container.IsOpen) return false;
             OnClose?.Invoke(container);
             OnCloseUnityEvent?.Invoke(container);
             container.Close();
             return true;
+        }
+
+        public void CloseAllContainers()
+        {
+            for (int i = 0; i < openedContainers.Count; i++)
+            {
+                Container container = openedContainers[i];
+                Close(container);
+                i--;
+            }
         }
         #endregion
 
