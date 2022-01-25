@@ -63,7 +63,7 @@ namespace ExpressoBits.Inventories
 
         private void Awake()
         {
-            slots = new List<Slot>();
+            //slots = new List<Slot>();
         }
 
         #region IContainer Functions
