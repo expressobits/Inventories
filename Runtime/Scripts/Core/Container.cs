@@ -24,9 +24,13 @@ namespace ExpressoBits.Inventories
 
         [SerializeField] private Database database;
         [SerializeField] private List<Slot> slots = new List<Slot>();
+        [Tooltip("Limits the maximum size of slots in the container")]
         [SerializeField] private bool limitedSlots;
+        [Tooltip("Maximum number of slots if the container has a limit")]
         [SerializeField] private int limitedAmountOfSlots = 8;
-        [SerializeField] private bool isOpen;
+        [Tooltip("Defines that the container has a fixed size and is not changed by removing items")]
+        [SerializeField] private bool fixedSize;
+        private bool isOpen;
 
         #region Actions
         public delegate void ItemEvent(Item item, ushort amount);
@@ -47,8 +51,8 @@ namespace ExpressoBits.Inventories
         #endregion
 
         #region Unity Events
-        public UnityEvent<Item,ushort> OnItemAddUnityEvent;
-        public UnityEvent<Item,ushort> OnItemRemoveUnityEvent;
+        public UnityEvent<Item, ushort> OnItemAddUnityEvent;
+        public UnityEvent<Item, ushort> OnItemRemoveUnityEvent;
 
         public UnityEvent<Slot> OnAddUnityEvent;
         public UnityEvent<Slot> OnRemoveUnityEvent;
@@ -63,7 +67,12 @@ namespace ExpressoBits.Inventories
 
         private void Awake()
         {
-            slots = new List<Slot>();
+            for (int i = 0; i < slots.Count; i++)
+            {
+                Slot slot = slots[i];
+                slot.GenerateNewId();
+                slots[i] = slot;
+            }
         }
 
         #region IContainer Functions
@@ -72,20 +81,11 @@ namespace ExpressoBits.Inventories
             ushort valueToAdd = amount;
             if (slots.Count > index)
             {
-                Slot slot = slots[index];
-                if(slot.Item == item)
-                {
-                    valueToAdd = slot.Add(valueToAdd);
-                    this[index] = slot;
-                }
+                valueToAdd = AddToSlot(index, item, valueToAdd);
             }
-            if ((!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
-            {
-                Add(new Slot(item, amount) { });
-                valueToAdd = 0;
-            }
-            OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
-            OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
+            valueToAdd = AddNewSlotIfPossible(valueToAdd, item);
+            OnItemAdd?.Invoke(item, (ushort)(amount - valueToAdd));
+            OnItemAddUnityEvent?.Invoke(item, (ushort)(amount - valueToAdd));
             OnChanged?.Invoke();
             OnChangedUnityEvent?.Invoke();
             return valueToAdd;
@@ -96,30 +96,35 @@ namespace ExpressoBits.Inventories
             ushort valueToAdd = amount;
             for (int i = 0; i < slots.Count; i++)
             {
-                Slot slot = slots[i];
-                if (slot.ItemID == item.ID)
-                {
-                    valueToAdd = slot.Add(valueToAdd);
-                    this[i] = slot;
-                    if (valueToAdd == 0)
-                    {
-                        OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
-                        OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
-                        OnChanged?.Invoke();
-                        OnChangedUnityEvent?.Invoke();
-                        return 0;
-                    }
-                }
+                valueToAdd = AddToSlot(i, item, valueToAdd);
             }
-            if ((!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
+            valueToAdd = AddNewSlotIfPossible(valueToAdd, item);
+            OnItemAdd?.Invoke(item, (ushort)(amount - valueToAdd));
+            OnItemAddUnityEvent?.Invoke(item, (ushort)(amount - valueToAdd));
+            OnChanged?.Invoke();
+            OnChangedUnityEvent?.Invoke();
+            return valueToAdd;
+        }
+
+        private ushort AddToSlot(int index, Item item, ushort valueToAdd)
+        {
+            Slot slot = slots[index];
+            if (slot.Item == item || slot.ItemID == Slot.EMPTY_SLOT_ID)
             {
+                valueToAdd = slot.ItemID == Slot.EMPTY_SLOT_ID ? slot.Add(item, valueToAdd) : slot.Add(valueToAdd);
+                this[index] = slot;
+            }
+            return valueToAdd;
+        }
+
+        private ushort AddNewSlotIfPossible(ushort valueToAdd, Item item)
+        {
+            if (!fixedSize && (!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
+            {
+                // TODO Problem with valueToadd greather than MaxStack of slot
                 Add(new Slot(item, valueToAdd) { });
                 valueToAdd = 0;
             }
-            OnItemAdd?.Invoke(item, (ushort) (amount - valueToAdd));
-            OnItemAddUnityEvent?.Invoke(item, (ushort) (amount - valueToAdd));
-            OnChanged?.Invoke();
-            OnChangedUnityEvent?.Invoke();
             return valueToAdd;
         }
 
@@ -139,7 +144,7 @@ namespace ExpressoBits.Inventories
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
                     this[index] = slot;
-                    if (slot.IsEmpty)
+                    if (slot.IsEmpty && !fixedSize)
                     {
                         RemoveAt(index);
                     }
@@ -158,11 +163,11 @@ namespace ExpressoBits.Inventories
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];
-                if (slot.Item == item.ID)
+                if (!slot.IsEmpty && slot.Item == item)
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
                     this[i] = slot;
-                    if (slot.IsEmpty)
+                    if (slot.IsEmpty && !fixedSize)
                     {
                         RemoveAt(i);
                     }
@@ -277,7 +282,7 @@ namespace ExpressoBits.Inventories
         #region Storage Calls
         public void Open()
         {
-            if(isOpen) return;
+            if (isOpen) return;
             isOpen = true;
             OnOpen?.Invoke();
             OnOpenUnityEvent?.Invoke();
@@ -285,7 +290,7 @@ namespace ExpressoBits.Inventories
 
         public void Close()
         {
-            if(!isOpen) return;
+            if (!isOpen) return;
             isOpen = false;
             OnClose?.Invoke();
             OnCloseUnityEvent?.Invoke();

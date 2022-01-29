@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -26,6 +27,8 @@ namespace ExpressoBits.Inventories
         public UnityEvent<Item, ushort> OnAddUnityEvent;
         public UnityEvent<Container> OnOpenUnityEvent;
         public UnityEvent<Container> OnCloseUnityEvent;
+
+        private List<Container> openedContainers = new List<Container>();
 
         /// <summary>
         /// Container default of itemHandler
@@ -83,7 +86,7 @@ namespace ExpressoBits.Inventories
         /// <param name="amount">Amount of item to drop</param>
         public void DropFromContainer(Container container, int index, ushort amount = 1)
         {
-            if(container.Count <= index) return;
+            if (container.Count <= index) return;
             Slot slot = container[index];
             Item item = slot.Item;
             ushort amountNotRemoved = container.RemoveItemAt(index, amount);
@@ -145,6 +148,28 @@ namespace ExpressoBits.Inventories
             otherContainer[otherIndex] = slot;
         }
 
+        public void SwapBetweenContainers(Container container, int index, Container otherContainer, int otherIndex, ushort amount)
+        {
+            Slot slot = container[index];
+            Slot otherSlot = otherContainer[otherIndex];
+            if (otherSlot.IsEmpty || slot.ItemID == otherSlot.ItemID)
+            {
+                Item item = slot.Item;
+                ushort forTrade = otherSlot.IsEmpty ? amount : (ushort)Mathf.Min(otherSlot.Remaining, amount);
+                ushort noRemove = container.RemoveItemAt(index, forTrade);
+                otherContainer.AddItemAt(item, otherIndex, (ushort)(forTrade - noRemove));
+            }
+            else
+            {   
+                if(slot.Amount == amount)
+                {
+                    container[index] = otherSlot;
+                    otherContainer[otherIndex] = slot;
+                }
+            }
+
+        }
+
         #region Container Interactions
         /// <summary>
         /// Open Default Container
@@ -171,6 +196,8 @@ namespace ExpressoBits.Inventories
         /// <returns>Return true if container opened with success</returns>
         public bool Open(Container container)
         {
+            if (openedContainers.Contains(container)) return false;
+            openedContainers.Add(container);
             if (container.IsOpen) return false;
             OnOpen?.Invoke(container);
             OnOpenUnityEvent?.Invoke(container);
@@ -185,11 +212,23 @@ namespace ExpressoBits.Inventories
         /// <returns>Return true if container closed with success</returns>
         public bool Close(Container container)
         {
+            if (!openedContainers.Contains(container)) return false;
+            openedContainers.Remove(container);
             if (!container.IsOpen) return false;
             OnClose?.Invoke(container);
             OnCloseUnityEvent?.Invoke(container);
             container.Close();
             return true;
+        }
+
+        public void CloseAllContainers()
+        {
+            for (int i = 0; i < openedContainers.Count; i++)
+            {
+                Container container = openedContainers[i];
+                Close(container);
+                i--;
+            }
         }
         #endregion
 
