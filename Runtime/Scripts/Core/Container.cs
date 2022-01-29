@@ -165,7 +165,7 @@ namespace ExpressoBits.Inventories
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];
-                if (slot.Item == item.ID)
+                if (!slot.IsEmpty && slot.Item == item)
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
                     this[i] = slot;
