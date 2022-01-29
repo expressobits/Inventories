@@ -45,7 +45,6 @@ namespace ExpressoBits.Inventories.Editor
             fixedSizeSerializedProperty = serializedObject.FindProperty("fixedSize");
 
             EditorGUILayout.PropertyField(databaseSerializedProperty);
-            EditorGUILayout.PropertyField(slotsSerializedProperty);
             EditorGUILayout.PropertyField(limitedSlotsSerializedProperty);
             if(limitedSlotsSerializedProperty.boolValue)
             {
@@ -63,6 +62,7 @@ namespace ExpressoBits.Inventories.Editor
                 
                 EditorGUI.indentLevel--;
             }
+            EditorGUILayout.PropertyField(slotsSerializedProperty);
             
             EditorGUILayout.LabelField("Events");
             EditorGUILayout.PropertyField(OnItemAddUnityEventSerializedProperty);

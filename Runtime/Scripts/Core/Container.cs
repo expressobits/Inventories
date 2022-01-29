@@ -24,10 +24,13 @@ namespace ExpressoBits.Inventories
 
         [SerializeField] private Database database;
         [SerializeField] private List<Slot> slots = new List<Slot>();
+        [Tooltip("Limits the maximum size of slots in the container")]
         [SerializeField] private bool limitedSlots;
+        [Tooltip("Maximum number of slots if the container has a limit")]
         [SerializeField] private int limitedAmountOfSlots = 8;
+        [Tooltip("Defines that the container has a fixed size and is not changed by removing items")]
         [SerializeField] private bool fixedSize;
-        [SerializeField] private bool isOpen;
+        private bool isOpen;
 
         #region Actions
         public delegate void ItemEvent(Item item, ushort amount);
@@ -64,11 +67,6 @@ namespace ExpressoBits.Inventories
 
         private void Awake()
         {
-            if (fixedSize)
-            {
-                //slots = new List<Slot>(limitedAmountOfSlots);
-            }
-
             for (int i = 0; i < slots.Count; i++)
             {
                 Slot slot = slots[i];
