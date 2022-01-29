@@ -11,6 +11,7 @@ namespace ExpressoBits.Inventories.Editor
         SerializedProperty slotsSerializedProperty;
         SerializedProperty limitedSlotsSerializedProperty;
         SerializedProperty limitedAmountOfSlotsSerializedProperty;
+        SerializedProperty fixedSizeSerializedProperty;
 
         SerializedProperty OnItemAddUnityEventSerializedProperty;
         SerializedProperty OnItemRemoveUnityEventSerializedProperty;
@@ -41,14 +42,26 @@ namespace ExpressoBits.Inventories.Editor
             slotsSerializedProperty = serializedObject.FindProperty("slots");
             limitedSlotsSerializedProperty = serializedObject.FindProperty("limitedSlots");
             limitedAmountOfSlotsSerializedProperty = serializedObject.FindProperty("limitedAmountOfSlots");
+            fixedSizeSerializedProperty = serializedObject.FindProperty("fixedSize");
 
             EditorGUILayout.PropertyField(databaseSerializedProperty);
             EditorGUILayout.PropertyField(slotsSerializedProperty);
             EditorGUILayout.PropertyField(limitedSlotsSerializedProperty);
             if(limitedSlotsSerializedProperty.boolValue)
             {
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(limitedAmountOfSlotsSerializedProperty);
-                slotsSerializedProperty.arraySize = Mathf.Min(limitedAmountOfSlotsSerializedProperty.intValue,slotsSerializedProperty.arraySize);
+                EditorGUILayout.PropertyField(fixedSizeSerializedProperty);
+                if(!fixedSizeSerializedProperty.boolValue)
+                {
+                    slotsSerializedProperty.arraySize = Mathf.Min(limitedAmountOfSlotsSerializedProperty.intValue,slotsSerializedProperty.arraySize);
+                }
+                else
+                {
+                    slotsSerializedProperty.arraySize = limitedAmountOfSlotsSerializedProperty.intValue;
+                }
+                
+                EditorGUI.indentLevel--;
             }
             
             EditorGUILayout.LabelField("Events");
