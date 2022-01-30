@@ -88,6 +88,7 @@ namespace ExpressoBits.Inventories
         {
             if (container.Count <= index) return;
             Slot slot = container[index];
+            if(slot.IsEmpty) return;
             Item item = slot.Item;
             ushort amountNotRemoved = container.RemoveItemAt(index, amount);
             ushort amountForDrop = (ushort)(amount - amountNotRemoved);
