@@ -21,6 +21,7 @@ namespace ExpressoBits.Inventories
                 return total;
             }
         }
+        public bool IsFixedSize => limitedSlots && isFixedSize;
 
         [SerializeField] private Database database;
         [SerializeField] private List<Slot> slots = new List<Slot>();
@@ -29,7 +30,7 @@ namespace ExpressoBits.Inventories
         [Tooltip("Maximum number of slots if the container has a limit")]
         [SerializeField] private int limitedAmountOfSlots = 8;
         [Tooltip("Defines that the container has a fixed size and is not changed by removing items")]
-        [SerializeField] private bool fixedSize;
+        [SerializeField] private bool isFixedSize;
         private bool isOpen;
 
         #region Actions
@@ -119,7 +120,7 @@ namespace ExpressoBits.Inventories
 
         private ushort AddNewSlotIfPossible(ushort valueToAdd, Item item)
         {
-            if (!fixedSize && (!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
+            if (!IsFixedSize && (!limitedSlots || slots.Count < limitedAmountOfSlots) && valueToAdd > 0)
             {
                 // TODO Problem with valueToadd greather than MaxStack of slot
                 Add(new Slot(item, valueToAdd) { });
@@ -144,7 +145,7 @@ namespace ExpressoBits.Inventories
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
                     this[index] = slot;
-                    if (slot.IsEmpty && !fixedSize)
+                    if (slot.IsEmpty && !IsFixedSize)
                     {
                         RemoveAt(index);
                     }
@@ -167,7 +168,7 @@ namespace ExpressoBits.Inventories
                 {
                     valueNoRemoved = slot.Remove(valueNoRemoved);
                     this[i] = slot;
-                    if (slot.IsEmpty && !fixedSize)
+                    if (slot.IsEmpty && !IsFixedSize)
                     {
                         RemoveAt(i);
                     }

@@ -11,7 +11,7 @@ namespace ExpressoBits.Inventories.Editor
         SerializedProperty slotsSerializedProperty;
         SerializedProperty limitedSlotsSerializedProperty;
         SerializedProperty limitedAmountOfSlotsSerializedProperty;
-        SerializedProperty fixedSizeSerializedProperty;
+        SerializedProperty isFixedSizeSerializedProperty;
 
         SerializedProperty OnItemAddUnityEventSerializedProperty;
         SerializedProperty OnItemRemoveUnityEventSerializedProperty;
@@ -42,7 +42,7 @@ namespace ExpressoBits.Inventories.Editor
             slotsSerializedProperty = serializedObject.FindProperty("slots");
             limitedSlotsSerializedProperty = serializedObject.FindProperty("limitedSlots");
             limitedAmountOfSlotsSerializedProperty = serializedObject.FindProperty("limitedAmountOfSlots");
-            fixedSizeSerializedProperty = serializedObject.FindProperty("fixedSize");
+            isFixedSizeSerializedProperty = serializedObject.FindProperty("isFixedSize");
 
             EditorGUILayout.PropertyField(databaseSerializedProperty);
             EditorGUILayout.PropertyField(limitedSlotsSerializedProperty);
@@ -50,8 +50,8 @@ namespace ExpressoBits.Inventories.Editor
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(limitedAmountOfSlotsSerializedProperty);
-                EditorGUILayout.PropertyField(fixedSizeSerializedProperty);
-                if(!fixedSizeSerializedProperty.boolValue)
+                EditorGUILayout.PropertyField(isFixedSizeSerializedProperty);
+                if(!isFixedSizeSerializedProperty.boolValue)
                 {
                     slotsSerializedProperty.arraySize = Mathf.Min(limitedAmountOfSlotsSerializedProperty.intValue,slotsSerializedProperty.arraySize);
                 }
