@@ -13,7 +13,8 @@ namespace ExpressoBits.Inventories
     {
 
         [SerializeField]
-        private Container defaultInventoryContainer;
+        private Container[] containers;
+        [SerializeField] private Database database;
 
         public delegate void ItemObjectEvent(ItemObject itemObject);
         public ItemObjectEvent OnDrop;
@@ -33,8 +34,11 @@ namespace ExpressoBits.Inventories
         /// <summary>
         /// Container default of itemHandler
         /// </summary>
-        public Container DefaultContainer => defaultInventoryContainer;
+        public Container[] Containers => containers;
 
+        public Database Database => database;
+
+        #region Container Functions
         /// <summary>
         /// Drop a quantity of the item with ObjectDropItemComponent
         /// </summary>
@@ -78,6 +82,21 @@ namespace ExpressoBits.Inventories
             return valueNoAdd;
         }
 
+        public ushort AddToContainers(Item item, ushort amount = 1, bool dropNotAddedValues = false)
+        {
+            foreach (var container in containers)
+            {
+                if (amount == 0) return 0;
+                amount = AddToContainer(container, item, amount, false);
+            }
+            if (dropNotAddedValues && amount > 0)
+            {
+                Drop(item, amount);
+                return 0;
+            }
+            return amount;
+        }
+
         /// <summary>
         /// Drops a amount of items from a container
         /// </summary>
@@ -88,7 +107,7 @@ namespace ExpressoBits.Inventories
         {
             if (container.Count <= index) return;
             Slot slot = container[index];
-            if(slot.IsEmpty) return;
+            if (slot.IsEmpty) return;
             Item item = slot.Item;
             ushort amountNotRemoved = container.RemoveItemAt(index, amount);
             ushort amountForDrop = (ushort)(amount - amountNotRemoved);
@@ -100,15 +119,25 @@ namespace ExpressoBits.Inventories
         /// </summary>
         /// <param name="container">Container to add item</param>
         /// <param name="itemObject">ItemObject to pick</param>
-        public void PickToContainer(Container container, ItemObject itemObject)
+        public bool PickToContainer(Container container, ItemObject itemObject)
         {
-            if (!itemObject.IsPickable) return;
+            if (!itemObject.IsPickable) return false;
             Item item = itemObject.Item;
             if (AddToContainer(container, item) == 0)
             {
                 OnPick?.Invoke(itemObject);
                 OnPickUnityEvent?.Invoke(itemObject);
                 Destroy(itemObject.gameObject);
+                return true;
+            }
+            return false;
+        }
+
+        public void PickToContainers(ItemObject itemObject)
+        {
+            foreach (var container in containers)
+            {
+                if (PickToContainer(container, itemObject)) return;
             }
         }
 
@@ -134,6 +163,7 @@ namespace ExpressoBits.Inventories
             Drop(item, amountNotUndo);
         }
 
+
         /// <summary>
         /// Swap slot information from different or non-containers
         /// </summary>
@@ -141,14 +171,7 @@ namespace ExpressoBits.Inventories
         /// <param name="index"></param>
         /// <param name="otherContainer"></param>
         /// <param name="otherIndex"></param>
-        public void SwapBetweenContainers(Container container, int index, Container otherContainer, int otherIndex)
-        {
-            Slot slot = container[index];
-            Slot otherSlot = otherContainer[otherIndex];
-            container[index] = otherSlot;
-            otherContainer[otherIndex] = slot;
-        }
-
+        /// <param name="amount">Amount of slot index trade</param>
         public void SwapBetweenContainers(Container container, int index, Container otherContainer, int otherIndex, ushort amount)
         {
             Slot slot = container[index];
@@ -161,8 +184,8 @@ namespace ExpressoBits.Inventories
                 otherContainer.AddItemAt(item, otherIndex, (ushort)(forTrade - noRemove));
             }
             else
-            {   
-                if(slot.Amount == amount)
+            {
+                if (slot.Amount == amount)
                 {
                     container[index] = otherSlot;
                     otherContainer[otherIndex] = slot;
@@ -170,24 +193,33 @@ namespace ExpressoBits.Inventories
             }
 
         }
+        #endregion
 
-        #region Container Interactions
+        #region Container Open/Close Interactions
         /// <summary>
         /// Open Default Container
         /// </summary>
         /// <returns>Return true if container opened with success</returns>
-        public bool OpenDefaultContainer()
+        public bool OpenContainers()
         {
-            return Open(defaultInventoryContainer);
+            foreach (var item in containers)
+            {
+                if (!Open(item)) return false;
+            }
+            return true;
         }
 
         /// <summary>
         /// Close Default Container
         /// </summary>
         /// <returns>Return true if container closed with success</returns>
-        public bool CloseDefaultContainer()
+        public bool CloseContainers()
         {
-            return Close(defaultInventoryContainer);
+            foreach (var item in containers)
+            {
+                if (!Close(item)) return false;
+            }
+            return true;
         }
 
         /// <summary>

@@ -12,12 +12,13 @@ namespace ExpressoBits.Inventories
         /// <summary>
         /// List of possible recipes to craft
         /// </summary>
-        public List<Recipe> Recipes => container.Database.Recipes;
+        public List<Recipe> Recipes => Database.Recipes;
 
         public List<CraftStation> NearCraftStations => nearCraftStations;
 
         private List<Crafting> craftings = new List<Crafting>();
-        private Container container;
+        [SerializeField] private Database database;
+        [SerializeField] private Container[] containers;
         [SerializeField] private bool trackNearStations = false;
         [SerializeField] private List<CraftStationObject> nearCraftStationObject = new List<CraftStationObject>();
         [SerializeField] private List<CraftStation> nearCraftStations = new List<CraftStation>();
@@ -52,13 +53,8 @@ namespace ExpressoBits.Inventories
         /// </summary>
         public bool IsCrafting => craftings.Count > 0f;
         public int CountOfCraftings => craftings.Count;
-        public Container Container => container;
-        public Database Database => container.Database;
-
-        private void Awake()
-        {
-            container = GetComponent<Container>();
-        }
+        public Container[] Containers => containers;
+        public Database Database => database;
 
         private void Update()
         {
@@ -71,7 +67,12 @@ namespace ExpressoBits.Inventories
                     if (crafting.IsFinished && canFinishCraft)
                     {
                         Recipe recipe = Recipes[crafting.Index];
-                        container.AddItem(recipe.Product, recipe.AmountOfProduct);
+                        ushort toAdd = recipe.AmountOfProduct;
+                        foreach (var container in containers)
+                        {
+                            if (toAdd <= 0) continue;
+                            toAdd = container.AddItem(recipe.Product, toAdd);
+                        }
                         OnCrafted?.Invoke(recipe);
                         RemoveAt(i);
                         i--;
@@ -110,16 +111,32 @@ namespace ExpressoBits.Inventories
 
             foreach (var items in recipe.RequiredItems)
             {
-                if (!container.Has(items.Item, items.Amount)) return false;
+                if (!HasItem(items.Item, items.Amount)) return false;
             }
             return true;
+        }
+
+        private bool HasItem(Item item, ushort amount)
+        {
+            foreach (var container in containers)
+            {
+                ushort value = container.GetAmountOf(item);
+                if (value >= amount) return true;
+                amount -= value;
+            }
+            return amount == 0;
         }
 
         private bool UseItems(Recipe recipe)
         {
             foreach (var items in recipe.RequiredItems)
             {
-                if (container.RemoveItem(items.Item, items.Amount) > 0) return false;
+                ushort amount = items.Amount;
+                foreach (var container in containers)
+                {
+                    amount -= container.RemoveItem(items.Item, items.Amount);
+                }
+                if (amount > 0) return false;
             }
             return true;
         }
@@ -181,7 +198,12 @@ namespace ExpressoBits.Inventories
             Recipe recipe = Recipes[crafting.Index];
             foreach (var requiredItem in recipe.RequiredItems)
             {
-                container.AddItem(requiredItem.Item, requiredItem.Amount);
+                ushort amount = requiredItem.Amount;
+                foreach (var container in containers)
+                {
+                    if(amount == 0) continue;
+                    amount = container.AddItem(requiredItem.Item,amount);
+                }
             }
             RemoveAt(index);
         }
