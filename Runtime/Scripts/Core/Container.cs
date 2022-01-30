@@ -208,6 +208,25 @@ namespace ExpressoBits.Inventories
             return false;
         }
 
+        /// <summary>
+        /// Returns the Amount of the item in the container
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>Amount of item</returns>
+        public ushort GetAmountOf(Item item)
+        {
+            ushort amount = 0;
+            for (int i = 0; i < slots.Count; i++)
+            {
+                Slot slot = slots[i];
+                if (slot.ItemID == item.ID)
+                {
+                    amount += slot.Amount;
+                }
+            }
+            return amount;
+        }
+
         public Slot this[int index]
         {
             get { return slots[index]; }
