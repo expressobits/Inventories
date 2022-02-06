@@ -6,7 +6,6 @@ namespace ExpressoBits.Inventories
     public class HotBar : MonoBehaviour
     {   
         [SerializeField] private Container container;
-        [SerializeField] private int slotsInHotBar = 8;
 
         private int selectionIndex = 0;
 
@@ -18,7 +17,7 @@ namespace ExpressoBits.Inventories
 
         public void ChangeSelection(int index)
         {
-            if(index < 0 || index >= slotsInHotBar) return;
+            if(index < 0 || index >= Container.Count) return;
             selectionIndex = index;
             OnChangeSelection?.Invoke();
         }
@@ -26,14 +25,14 @@ namespace ExpressoBits.Inventories
         public void ScrollUp()
         {
             int nextIndex = selectionIndex + 1;
-            if(nextIndex >= slotsInHotBar) nextIndex = 0;
+            if(nextIndex >= Container.Count) nextIndex = 0;
             ChangeSelection(nextIndex);
         }
 
         public void ScrollDown()
         {
             int nextIndex = selectionIndex - 1;
-            if(nextIndex < 0) nextIndex = slotsInHotBar - 1;
+            if(nextIndex < 0) nextIndex = Container.Count - 1;
             ChangeSelection(nextIndex);
         }
     }
