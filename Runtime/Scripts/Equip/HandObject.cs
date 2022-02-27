@@ -15,7 +15,7 @@ namespace ExpressoBits.Inventories
         {
             hotBar.OnChangeSelection += ChangeSelection;
             hotBar.Container.OnChanged += ChangeContainer;
-            defaultGameObject.SetActive(false);
+            if(defaultGameObject) defaultGameObject.SetActive(false);
             ChangeSelection();
         }
 
@@ -41,7 +41,7 @@ namespace ExpressoBits.Inventories
                 if (!item) return;
                 if (!item.TryGetComponent(out HandObjectItemComponent handObjectItemComponent))
                 {
-                    defaultGameObject.SetActive(true);
+                    if(defaultGameObject) defaultGameObject.SetActive(true);
                 }
                 else if (handObjects.TryGetValue(item, out GameObject handObject))
                 {
@@ -59,7 +59,7 @@ namespace ExpressoBits.Inventories
 
         private void ClearLastSelection()
         {
-            defaultGameObject.SetActive(false);
+            if(defaultGameObject) defaultGameObject.SetActive(false);
             if (!lastItem) return;
             if (handObjects.TryGetValue(lastItem, out GameObject handObject))
             {
